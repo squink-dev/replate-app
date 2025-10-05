@@ -1,50 +1,129 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
+import type { Database } from "@/database.types";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
+type BusinessLocation =
+  Database["public"]["Tables"]["business_locations"]["Row"];
+
 interface Location {
-  id: number;
+  id: string;
   name: string;
   address: string;
 }
 
 export default function BusinessDashboard() {
-  const [locations, setLocations] = useState<Location[]>([
-    { id: 1, name: "Central Kitchen", address: "123 Main St" },
-    { id: 2, name: "Downtown Café", address: "456 Market Ave" },
-    { id: 3, name: "Food Depot", address: "789 Broadway Blvd" },
-  ]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdding, setIsAdding] = useState(false);
 
   const [formData, setFormData] = useState({ name: "", address: "" });
   const [showForm, setShowForm] = useState(false);
 
-  const { profile, isLoading, signOut } = useAuth();
+  const { profile } = useAuth();
+
+  // Fetch locations on mount
+  useEffect(() => {
+    const fetchLocations = async () => {
+      if (profile?.kind !== "business") {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/business/locations?business_id=${profile.businessId}`,
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch locations");
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.locations) {
+          const formattedLocations: Location[] = data.locations.map(
+            (loc: BusinessLocation) => ({
+              id: loc.id,
+              name: loc.name,
+              address: loc.address,
+            }),
+          );
+          setLocations(formattedLocations);
+        }
+      } catch (error) {
+        console.error("Error fetching locations:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLocations();
+  }, [profile]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAdd = () => {
-    console.log(profile);
+  const handleAdd = async () => {
     if (!formData.name.trim() || !formData.address.trim()) {
       alert("Please fill out both fields.");
       return;
     }
 
-    const newLocation = {
-      id: Date.now(),
-      name: formData.name,
-      address: formData.address,
-    };
+    if (profile?.kind !== "business") {
+      alert("You must be logged in as a business to add locations.");
+      return;
+    }
 
-    setLocations((prev) => [...prev, newLocation]);
-    setFormData({ name: "", address: "" });
-    setShowForm(false);
+    setIsAdding(true);
+
+    try {
+      const response = await fetch("/api/business/locations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          address: formData.address,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create location");
+      }
+
+      if (data.success && data.location) {
+        // Add the new location to the list
+        const newLocation: Location = {
+          id: data.location.id,
+          name: data.location.name,
+          address: data.location.address,
+        };
+
+        setLocations((prev) => [newLocation, ...prev]);
+        setFormData({ name: "", address: "" });
+        setShowForm(false);
+        alert("Location added successfully!");
+      }
+    } catch (error) {
+      console.error("Error adding location:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to add location. Please try again.",
+      );
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   return (
@@ -62,12 +141,10 @@ export default function BusinessDashboard() {
                   {profile?.kind === "business"
                     ? profile.businessName
                     : "Business"}
-                </span>{" "}
-                👋
+                </span>
               </h1>
               <p className="text-gray-500 mt-2">
-                Add or manage your business locations to list available food for
-                those in need.
+                Add or manage your business locations here.
               </p>
             </div>
             <button
@@ -101,16 +178,21 @@ export default function BusinessDashboard() {
               <button
                 type="button"
                 onClick={handleAdd}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                disabled={isAdding}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save
+                {isAdding ? "Saving..." : "Save"}
               </button>
             </div>
           )}
 
           {/* Locations List */}
           <div className="border-t border-gray-200 pt-4">
-            {locations.length === 0 ? (
+            {isLoading ? (
+              <p className="text-gray-500 text-center py-4">
+                Loading locations...
+              </p>
+            ) : locations.length === 0 ? (
               <p className="text-gray-500 text-center py-4">
                 No locations added yet.
               </p>
@@ -131,7 +213,7 @@ export default function BusinessDashboard() {
                       href={`/business/dashboard/listing/${loc.id}`}
                       className="text-green-600 hover:underline text-sm font-medium"
                     >
-                      View →
+                      Manage →
                     </Link>
                   </li>
                 ))}

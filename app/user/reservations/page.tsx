@@ -22,9 +22,7 @@ interface Reservation {
     name: string;
     location: {
       name: string;
-      address_line1: string;
-      city: string;
-      postal_code: string;
+      address: string;
       business: {
         business_name: string;
       };
@@ -38,6 +36,7 @@ export default function UserReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
 
   const fetchReservations = useCallback(async () => {
     try {
@@ -61,6 +60,40 @@ export default function UserReservationsPage() {
   useEffect(() => {
     fetchReservations();
   }, [fetchReservations]);
+
+  const handleCancelReservation = async (reservationId: string) => {
+    if (!confirm("Are you sure you want to cancel this reservation?")) {
+      return;
+    }
+
+    setCancelingId(reservationId);
+
+    try {
+      const response = await fetch(`/api/reservations/${reservationId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to cancel reservation");
+      }
+
+      // Refresh the reservations list
+      await fetchReservations();
+
+      // Show success message (you could use a toast notification here)
+      alert("Reservation canceled successfully");
+    } catch (err) {
+      console.error("Error canceling reservation:", err);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Failed to cancel reservation. Please try again.",
+      );
+    } finally {
+      setCancelingId(null);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -210,12 +243,7 @@ export default function UserReservationsPage() {
                         </div>
 
                         <div className="text-sm text-gray-600 mb-4">
-                          <p>
-                            {reservation.pickup_point.location.address_line1},{" "}
-                            {reservation.pickup_point.location.city}
-                            {reservation.pickup_point.location.postal_code &&
-                              `, ${reservation.pickup_point.location.postal_code}`}
-                          </p>
+                          <p>{reservation.pickup_point.location.address}</p>
                         </div>
 
                         <div className="mb-4">
@@ -246,6 +274,18 @@ export default function UserReservationsPage() {
                               Expires: {formatDate(reservation.expires_at)}
                             </p>
                           </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleCancelReservation(reservation.id)
+                            }
+                            disabled={cancelingId === reservation.id}
+                            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                          >
+                            {cancelingId === reservation.id
+                              ? "Canceling..."
+                              : "Cancel Reservation"}
+                          </button>
                         </div>
                       </div>
                     ))}

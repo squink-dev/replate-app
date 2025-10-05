@@ -16,51 +16,36 @@ export type Database = {
     Tables: {
       business_locations: {
         Row: {
-          address_line1: string;
-          address_line2: string | null;
+          address: string;
           business_id: string;
-          city: string;
-          country: string;
           created_at: string;
           geom: unknown | null;
           id: string;
           latitude: number | null;
           longitude: number | null;
           name: string;
-          postal_code: string | null;
-          region: string | null;
           timezone: string | null;
         };
         Insert: {
-          address_line1: string;
-          address_line2?: string | null;
+          address: string;
           business_id: string;
-          city: string;
-          country?: string;
           created_at?: string;
           geom?: unknown | null;
           id?: string;
           latitude?: number | null;
           longitude?: number | null;
           name: string;
-          postal_code?: string | null;
-          region?: string | null;
           timezone?: string | null;
         };
         Update: {
-          address_line1?: string;
-          address_line2?: string | null;
+          address?: string;
           business_id?: string;
-          city?: string;
-          country?: string;
           created_at?: string;
           geom?: unknown | null;
           id?: string;
           latitude?: number | null;
           longitude?: number | null;
           name?: string;
-          postal_code?: string | null;
-          region?: string | null;
           timezone?: string | null;
         };
         Relationships: [
@@ -1130,28 +1115,33 @@ export type Database = {
         Returns: string;
       };
       rpc_nearest_locations_with_available_food: {
-        Args: {
-          p_diets?: Database["public"]["Enums"]["diet_enum"][];
-          p_lat: number;
-          p_limit?: number;
-          p_lon: number;
-          p_radius_km?: number;
-        };
+        Args:
+          | {
+              p_diets?: Database["public"]["Enums"]["diet_enum"][];
+              p_lat: number;
+              p_limit?: number;
+              p_lon: number;
+              p_radius_km?: number;
+            }
+          | {
+              p_diets?: Database["public"]["Enums"]["diet_enum"][];
+              p_lat: number;
+              p_limit?: number;
+              p_lon: number;
+              p_radius_km?: number;
+            };
         Returns: {
-          address_line1: string;
+          address: string;
           available_item_count: number;
           available_total_quantity: number;
           business_id: string;
           business_name: string;
-          city: string;
           distance_km: number;
           items: Json;
           location_id: string;
           location_name: string;
           pickup_point_id: string;
           pickup_point_name: string;
-          postal_code: string;
-          region: string;
         }[];
       };
       spheroid_in: {

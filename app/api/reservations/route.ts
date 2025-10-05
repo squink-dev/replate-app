@@ -32,9 +32,7 @@ export async function GET() {
           location:business_locations(
             id,
             name,
-            address_line1,
-            city,
-            postal_code,
+            address,
             business:business_profiles(
               business_name
             )

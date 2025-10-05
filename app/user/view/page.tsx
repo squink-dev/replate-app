@@ -7,20 +7,17 @@ import { GoogleMap } from "@/components/GoogleMap";
 import Header from "@/components/header";
 
 interface Location {
-  address_line1: string;
+  address: string;
   available_item_count: number;
   available_total_quantity: number;
   business_id: string;
   business_name: string;
-  city: string;
   distance_km: number;
   items: unknown;
   location_id: string;
   location_name: string;
   pickup_point_id: string;
   pickup_point_name: string;
-  postal_code: string;
-  region: string;
 }
 
 export default function UserView() {
@@ -181,16 +178,14 @@ export default function UserView() {
 
         {geoLoading && (
           <div className="text-center mb-6">
-            <p className="text-green-600">
-              📍 Getting your current location...
-            </p>
+            <p className="text-green-600">Getting your current location...</p>
           </div>
         )}
 
         {userLocation && !geoLoading && (
           <div className="text-center mb-4">
             <p className="text-green-600 text-sm">
-              ✅ Using your current location
+              Using your current location
             </p>
           </div>
         )}
@@ -247,7 +242,7 @@ export default function UserView() {
               {!mapsApiKey && userLocation && (
                 <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-yellow-800 text-sm">
-                    📍 Map view unavailable - showing list view only
+                    Map view unavailable - showing list view only
                   </p>
                 </div>
               )}
@@ -271,10 +266,7 @@ export default function UserView() {
 
                     <div className="text-gray-600 mb-4">
                       <h5 className="font-medium">{business.location_name}</h5>
-                      <p className="text-sm">
-                        {business.address_line1}, {business.city}
-                        {business.postal_code && `, ${business.postal_code}`}
-                      </p>
+                      <p className="text-sm">{business.address}</p>
                     </div>
 
                     <div className="flex gap-4 text-sm mb-4">

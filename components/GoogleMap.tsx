@@ -4,20 +4,17 @@ import { Status, Wrapper } from "@googlemaps/react-wrapper";
 import { useEffect, useRef, useState } from "react";
 
 interface Location {
-  address_line1: string;
+  address: string;
   available_item_count: number;
   available_total_quantity: number;
   business_id: string;
   business_name: string;
-  city: string;
   distance_km: number;
   items: unknown;
   location_id: string;
   location_name: string;
   pickup_point_id: string;
   pickup_point_name: string;
-  postal_code: string;
-  region: string;
 }
 
 interface GoogleMapProps {
@@ -95,11 +92,11 @@ const MapComponent: React.FC<{
   useEffect(() => {
     if (map && businesses.length > 0) {
       const newMarkers = businesses
-        .filter((business) => business.address_line1) // Only show businesses with addresses
+        .filter((business) => business.address) // Only show businesses with addresses
         .map((business) => {
           // Use Google's geocoding to get precise coordinates for the address
           const geocoder = new google.maps.Geocoder();
-          const fullAddress = `${business.address_line1}, ${business.city}${business.postal_code ? `, ${business.postal_code}` : ""}`;
+          const fullAddress = business.address;
 
           return new Promise<google.maps.Marker | null>((resolve) => {
             geocoder.geocode({ address: fullAddress }, (results, status) => {
@@ -134,8 +131,7 @@ const MapComponent: React.FC<{
                           <strong>${business.location_name}</strong>
                         </p>
                         <p style="margin: 0 0 8px 0; font-size: 12px; color: #6b7280;">
-                          ${business.address_line1}, ${business.city}
-                          ${business.postal_code ? `, ${business.postal_code}` : ""}
+                          ${business.address}
                         </p>
                         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                           <span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; font-size: 11px;">

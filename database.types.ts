@@ -113,7 +113,9 @@ export type Database = {
           best_before: string | null;
           created_at: string;
           description: string;
-          dietary_restrictions: Database["public"]["Enums"]["diet_enum"][];
+          dietary_restrictions:
+            | Database["public"]["Enums"]["diet_enum"][]
+            | null;
           icon_url: string | null;
           id: string;
           pickup_point_id: string;
@@ -126,7 +128,9 @@ export type Database = {
           best_before?: string | null;
           created_at?: string;
           description: string;
-          dietary_restrictions?: Database["public"]["Enums"]["diet_enum"][];
+          dietary_restrictions?:
+            | Database["public"]["Enums"]["diet_enum"][]
+            | null;
           icon_url?: string | null;
           id?: string;
           pickup_point_id: string;
@@ -139,7 +143,9 @@ export type Database = {
           best_before?: string | null;
           created_at?: string;
           description?: string;
-          dietary_restrictions?: Database["public"]["Enums"]["diet_enum"][];
+          dietary_restrictions?:
+            | Database["public"]["Enums"]["diet_enum"][]
+            | null;
           icon_url?: string | null;
           id?: string;
           pickup_point_id?: string;
@@ -910,6 +916,19 @@ export type Database = {
         Args: { "": unknown };
         Returns: Json;
       };
+      list_business_locations_by_distance: {
+        Args: { user_lat: number; user_lng: number };
+        Returns: {
+          address_line1: string;
+          city: string;
+          country: string;
+          distance_km: number;
+          id: string;
+          latitude: number;
+          longitude: number;
+          name: string;
+        }[];
+      };
       longtransactionsenabled: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
@@ -1103,6 +1122,31 @@ export type Database = {
       postgis_wagyu_version: {
         Args: Record<PropertyKey, never>;
         Returns: string;
+      };
+      rpc_nearest_locations_with_available_food: {
+        Args: {
+          p_diets?: Database["public"]["Enums"]["diet_enum"][];
+          p_lat: number;
+          p_limit?: number;
+          p_lon: number;
+          p_radius_km?: number;
+        };
+        Returns: {
+          address_line1: string;
+          available_item_count: number;
+          available_total_quantity: number;
+          business_id: string;
+          business_name: string;
+          city: string;
+          distance_km: number;
+          items: Json;
+          location_id: string;
+          location_name: string;
+          pickup_point_id: string;
+          pickup_point_name: string;
+          postal_code: string;
+          region: string;
+        }[];
       };
       spheroid_in: {
         Args: { "": unknown };

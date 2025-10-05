@@ -20,6 +20,8 @@ export default function BusinessDashboard() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ name: "", address: "" });
@@ -110,10 +112,36 @@ export default function BusinessDashboard() {
   };
 
   // Delete location
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this location?")) {
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this location?")) {
+      return;
+    }
+
+    setIsDeleting(id);
+    setMenuOpen(null);
+
+    try {
+      const response = await fetch(`/api/business/locations/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete location");
+      }
+
       setLocations((prev) => prev.filter((loc) => loc.id !== id));
-      setMenuOpen(null);
+      alert("Location deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Failed to delete location. It may have food items that need to be removed first.",
+      );
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -124,18 +152,49 @@ export default function BusinessDashboard() {
     setMenuOpen(null);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editData.name.trim() || !editData.address.trim()) {
       alert("Please fill out both fields.");
       return;
     }
 
-    setLocations((prev) =>
-      prev.map((loc) => (loc.id === editingId ? { ...loc, ...editData } : loc)),
-    );
+    setIsSaving(true);
 
-    setEditingId(null);
-    setEditData({ name: "", address: "" });
+    try {
+      const response = await fetch(`/api/business/locations/${editingId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editData.name,
+          address: editData.address,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update location");
+      }
+
+      setLocations((prev) =>
+        prev.map((loc) =>
+          loc.id === editingId ? { ...loc, ...editData } : loc,
+        ),
+      );
+
+      setEditingId(null);
+      setEditData({ name: "", address: "" });
+      alert("Location updated successfully!");
+    } catch (err) {
+      console.error(err);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Failed to update location. Please try again.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -245,9 +304,10 @@ export default function BusinessDashboard() {
                         <button
                           type="button"
                           onClick={handleSaveEdit}
-                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                          disabled={isSaving}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Save
+                          {isSaving ? "Saving..." : "Save"}
                         </button>
                       </div>
                     ) : (
@@ -273,9 +333,10 @@ export default function BusinessDashboard() {
                               onClick={() =>
                                 setMenuOpen(menuOpen === loc.id ? null : loc.id)
                               }
-                              className="text-gray-500 hover:text-gray-800 active:text-black text-2xl px-2 transition-colors"
+                              disabled={isDeleting === loc.id}
+                              className="text-gray-500 hover:text-gray-800 active:text-black text-2xl px-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              ⋯
+                              {isDeleting === loc.id ? "..." : "⋯"}
                             </button>
 
                             {menuOpen === loc.id && (

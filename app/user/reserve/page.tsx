@@ -36,7 +36,7 @@ export default function ReservePage() {
               <button
                 type="button"
                 onClick={() => router.push("/user/view")}
-                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium"
+                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium cursor-pointer"
               >
                 Find Food Near Me
               </button>

@@ -113,12 +113,43 @@ export default function UserReservePage({
       return;
     }
 
-    // Here you would implement the actual reservation logic
-    // For now, we'll just show an alert
-    alert(`Reservation created for ${reservationItems.length} items!`);
+    try {
+      setLoading(true);
 
-    // You could redirect to a confirmation page or back to the view page
-    // router.push('/user/view');
+      const response = await fetch("/api/reservations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          locationId,
+          items: reservationItems,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create reservation");
+      }
+
+      // Success! Show a success message and redirect
+      alert(
+        `Reservation created successfully! Your reservation ID is ${data.reservation.id}. It expires in 24 hours.`,
+      );
+
+      // Redirect to the user view page or a confirmation page
+      router.push("/user/view");
+    } catch (err) {
+      console.error("Reservation error:", err);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Failed to create reservation. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getTotalItems = () => {
@@ -150,7 +181,7 @@ export default function UserReservePage({
             <button
               type="button"
               onClick={() => router.back()}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 cursor-pointer"
             >
               Go Back
             </button>
@@ -171,7 +202,7 @@ export default function UserReservePage({
             <button
               type="button"
               onClick={() => router.back()}
-              className="text-green-600 hover:text-green-700 mb-4 flex items-center gap-2"
+              className="text-green-600 hover:text-green-700 mb-4 flex items-center gap-2 cursor-pointer"
             >
               ← Back to Search
             </button>
@@ -200,7 +231,7 @@ export default function UserReservePage({
                   return (
                     <div
                       key={item.id}
-                      className="border border-gray-200 rounded-lg p-4"
+                      className="border border-gray-200 rounded-lg p-4 pb-3"
                     >
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
@@ -253,7 +284,7 @@ export default function UserReservePage({
                                   Math.max(0, reservedQty - 1),
                                 )
                               }
-                              className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600"
+                              className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 cursor-pointer disabled:cursor-not-allowed"
                               disabled={reservedQty <= 0}
                             >
                               -
@@ -269,7 +300,7 @@ export default function UserReservePage({
                                   Math.min(maxReservable, reservedQty + 1),
                                 )
                               }
-                              className="w-8 h-8 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center text-white"
+                              className="w-8 h-8 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center text-white cursor-pointer disabled:cursor-not-allowed"
                               disabled={reservedQty >= maxReservable}
                             >
                               +
@@ -305,9 +336,7 @@ export default function UserReservePage({
                       className="flex justify-between text-sm"
                     >
                       <span>{foodItem?.description}</span>
-                      <span>
-                        {item.quantity} {foodItem?.unit_label}
-                      </span>
+                      <span>x{item.quantity}</span>
                     </div>
                   );
                 })}
@@ -320,9 +349,10 @@ export default function UserReservePage({
                 <button
                   type="button"
                   onClick={handleReservation}
-                  className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 font-medium"
+                  disabled={loading}
+                  className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  Confirm Reservation
+                  {loading ? "Creating Reservation..." : "Confirm Reservation"}
                 </button>
               </div>
             </div>

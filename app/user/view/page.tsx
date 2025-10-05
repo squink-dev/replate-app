@@ -210,7 +210,7 @@ export default function UserView() {
               type="button"
               onClick={handleSearch}
               disabled={loading}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? "Searching..." : "Search"}
             </button>
@@ -302,7 +302,7 @@ export default function UserView() {
                         onClick={() =>
                           router.push(`/user/reserve/${business.location_id}`)
                         }
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer"
                         disabled={business.available_item_count === 0}
                       >
                         {business.available_item_count > 0

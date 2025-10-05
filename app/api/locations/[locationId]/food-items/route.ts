@@ -62,7 +62,7 @@ export async function GET(
 
     const pickupPointIds = pickupPoints.map((pp) => pp.id);
 
-    // Get all food items for these pickup points
+    // Get all food items for these pickup points (exclude archived)
     const { data: foodItems, error: foodError } = await supabase
       .from("food_items")
       .select(`
@@ -80,6 +80,7 @@ export async function GET(
         pickup_points!inner(id, name)
       `)
       .in("pickup_point_id", pickupPointIds)
+      .eq("archived", false)
       .order("created_at", { ascending: false });
 
     if (foodError) {
@@ -258,14 +259,13 @@ export async function PUT(
       );
     }
 
-    // If total_quantity changed, recalculate available_quantity
+    // Build updates object (available_quantity is a generated column, so don't update it)
     const updates: {
       description?: string;
       unit_label?: string;
       dietary_restrictions?: string[];
       best_before?: string | null;
       total_quantity?: number;
-      available_quantity?: number;
       pickup_point_id?: string;
     } = {
       description,
@@ -275,10 +275,7 @@ export async function PUT(
     };
 
     if (total_quantity !== undefined) {
-      const newTotalQuantity = Number(total_quantity);
-      const reservedQty = existingItem.reserved_quantity || 0;
-      updates.total_quantity = newTotalQuantity;
-      updates.available_quantity = Math.max(0, newTotalQuantity - reservedQty);
+      updates.total_quantity = Number(total_quantity);
     }
 
     if (pickup_point_id && pickup_point_id !== existingItem.pickup_point_id) {
@@ -371,33 +368,62 @@ export async function DELETE(
       );
     }
 
-    // Check if there are any reservations
-    if (existingItem.reserved_quantity && existingItem.reserved_quantity > 0) {
+    // Check if there are any reservation items (past or present) referencing this food item
+    const { data: reservationItems, error: reservationError } = await supabase
+      .from("reservation_items")
+      .select("id")
+      .eq("food_item_id", id)
+      .limit(1);
+
+    if (reservationError) {
+      console.error("Error checking reservation items:", reservationError);
+      return NextResponse.json(
+        {
+          error: "Failed to check reservations",
+          details: reservationError.message,
+        },
+        { status: 500 },
+      );
+    }
+
+    if (reservationItems && reservationItems.length > 0) {
       return NextResponse.json(
         {
           error:
-            "Cannot delete food item with active reservations. Cancel reservations first.",
+            "Cannot archive food item with reservation history. This item has been reserved before and must be kept for record-keeping purposes.",
         },
         { status: 400 },
       );
     }
 
-    const { error: deleteError } = await supabase
+    // Check if there are any active reservations
+    if (existingItem.reserved_quantity && existingItem.reserved_quantity > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Cannot archive food item with active reservations. Wait for reservations to be completed first.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // Archive the item instead of deleting
+    const { error: archiveError } = await supabase
       .from("food_items")
-      .delete()
+      .update({ archived: true })
       .eq("id", id);
 
-    if (deleteError) {
-      console.error("Error deleting food item:", deleteError);
+    if (archiveError) {
+      console.error("Error archiving food item:", archiveError);
       return NextResponse.json(
-        { error: "Failed to delete food item", details: deleteError.message },
+        { error: "Failed to archive food item", details: archiveError.message },
         { status: 500 },
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: "Food item deleted successfully",
+      message: "Food item archived successfully",
     });
   } catch (error) {
     console.error("Error deleting food item:", error);

@@ -94,6 +94,7 @@ export type Database = {
       };
       food_items: {
         Row: {
+          archived: boolean;
           available_quantity: number | null;
           best_before: string | null;
           created_at: string;
@@ -109,6 +110,7 @@ export type Database = {
           unit_label: string | null;
         };
         Insert: {
+          archived?: boolean;
           available_quantity?: number | null;
           best_before?: string | null;
           created_at?: string;
@@ -124,6 +126,7 @@ export type Database = {
           unit_label?: string | null;
         };
         Update: {
+          archived?: boolean;
           available_quantity?: number | null;
           best_before?: string | null;
           created_at?: string;
@@ -1115,21 +1118,13 @@ export type Database = {
         Returns: string;
       };
       rpc_nearest_locations_with_available_food: {
-        Args:
-          | {
-              p_diets?: Database["public"]["Enums"]["diet_enum"][];
-              p_lat: number;
-              p_limit?: number;
-              p_lon: number;
-              p_radius_km?: number;
-            }
-          | {
-              p_diets?: Database["public"]["Enums"]["diet_enum"][];
-              p_lat: number;
-              p_limit?: number;
-              p_lon: number;
-              p_radius_km?: number;
-            };
+        Args: {
+          p_diets?: Database["public"]["Enums"]["diet_enum"][];
+          p_lat: number;
+          p_limit?: number;
+          p_lon: number;
+          p_radius_km?: number;
+        };
         Returns: {
           address: string;
           available_item_count: number;

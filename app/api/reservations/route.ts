@@ -116,14 +116,15 @@ export async function POST(request: Request) {
 
     const pickupPointId = pickupPoints[0].id;
 
-    // Verify all food items exist and have sufficient quantity
+    // Verify all food items exist and have sufficient quantity (exclude archived)
     const foodItemIds = items.map(
       (item: { foodItemId: string; quantity: number }) => item.foodItemId,
     );
     const { data: foodItems, error: foodError } = await supabase
       .from("food_items")
       .select("id, available_quantity")
-      .in("id", foodItemIds);
+      .in("id", foodItemIds)
+      .eq("archived", false);
 
     if (foodError || !foodItems) {
       return NextResponse.json(

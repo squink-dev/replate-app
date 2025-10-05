@@ -232,7 +232,12 @@ export default function LocationView() {
   };
 
   const handleDelete = async (itemId: string) => {
-    if (!confirm("Delete this item?")) return;
+    if (
+      !confirm(
+        "Archive this item? It will no longer appear in listings but will be kept for record-keeping.",
+      )
+    )
+      return;
 
     try {
       setDeletingId(itemId);
@@ -246,14 +251,16 @@ export default function LocationView() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to delete food item");
+        throw new Error(data.error || "Failed to archive food item");
       }
 
       await fetchData();
-      alert("Food item deleted successfully!");
+      alert("Food item archived successfully!");
     } catch (error) {
-      console.error("Error deleting food item:", error);
-      alert("Failed to delete food item. It may have active reservations.");
+      console.error("Error archiving food item:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to archive food item";
+      alert(errorMessage);
     } finally {
       setDeletingId(null);
     }
@@ -463,7 +470,9 @@ export default function LocationView() {
                             disabled={isSubmitting || deletingId !== null}
                             className="text-red-600 hover:underline text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {deletingId === item.id ? "Deleting..." : "Delete"}
+                            {deletingId === item.id
+                              ? "Archiving..."
+                              : "Archive"}
                           </button>
                         </div>
                       </div>

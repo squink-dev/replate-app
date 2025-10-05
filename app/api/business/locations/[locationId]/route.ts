@@ -184,13 +184,14 @@ export async function DELETE(
       const { data: foodItems } = await supabase
         .from("food_items")
         .select("id")
-        .in("pickup_point_id", pickupPointIds);
+        .in("pickup_point_id", pickupPointIds)
+        .eq("archived", false);
 
       if (foodItems && foodItems.length > 0) {
         return NextResponse.json(
           {
             error:
-              "Cannot delete location with existing food items. Please remove all food items first.",
+              "Cannot delete location with existing food items. Please archive or remove all food items first.",
           },
           { status: 400 },
         );

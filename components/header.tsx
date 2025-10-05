@@ -118,11 +118,12 @@ export default function Header() {
                 <>
                   <button
                     type="button"
-                    className="fixed inset-0 z-10 bg-transparent border-0 p-0 m-0 focus:outline-none cursor-default"
+                    className="fixed inset-0 z-40 bg-transparent border-0 p-0 m-0 cursor-default"
                     onClick={() => setIsMenuOpen(false)}
                     aria-label="Close menu"
+                    tabIndex={-1}
                   />
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
                     <div className="px-4 py-3 border-b border-gray-100">
                       <div className="font-semibold text-gray-800">
                         {getDisplayName()}
@@ -134,7 +135,7 @@ export default function Header() {
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer relative z-30"
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <svg
                         className="w-4 h-4"

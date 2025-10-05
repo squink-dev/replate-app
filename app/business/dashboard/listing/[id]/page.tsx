@@ -73,7 +73,6 @@ export default function LocationView() {
       <Header />
       <div className="min-h-screen bg-gray-50 flex flex-col px-6 py-12">
         <div className="max-w-3xl mx-auto w-full bg-white shadow-lg rounded-2xl border border-gray-200 p-8">
-          {/* Header Section */}
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
               {locationName}
@@ -122,7 +121,6 @@ export default function LocationView() {
             )}
           </div>
 
-          {/* Food Items List */}
           <div className="border-t border-gray-200 pt-4 mb-8">
             {foodItems.length === 0 ? (
               <p className="text-gray-500 text-center py-4">
@@ -163,7 +161,6 @@ export default function LocationView() {
             )}
           </div>
 
-          {/* Back to Dashboard Button (works great for both mobile & desktop) */}
           <div className="text-center">
             <Link
               href="/business/dashboard"

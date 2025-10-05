@@ -1,19 +1,67 @@
-Replate
+# Replate
+
+## Connecting surplus food to people who need it — simply and sustainably
+
+Replate is a web platform that helps link businesses with surplus food and community members in need.  
+Instead of discarding leftover food or organizing waste collection, businesses can list surplus items that users can find and reserve nearby.
+
+---
+
+## Why Replate
+
+Many businesses face the tedious process of managing garbage collection for unused food (a system that is both inefficient and wasteful).  
+Replate turns this process into an opportunity to help the community while reducing unnecessary waste.
+
+By listing surplus food:
+- Businesses save time and resources while earning social impact points.
+- Users can search and reserve available food listings nearby.
+- The community benefits from reduced waste and increased access to food.
+
+---
+
+## How It Works
+
+1. Businesses register and create listings of available surplus food.  
+2. Users browse or search nearby listings through a simple interface.  
+3. Reservations allow users to claim available items before they go to waste.
+
+---
+
+## Features
+
+- Secure user and business authentication  
+- Business dashboard for managing food listings  
+- Location-based food search + google map api
+
+---
+
+## Tech Stack
+
+- Next.js 15 (App Router + Turbopack)  
+- Supabase (Database & Authentication)  
+- Tailwind CSS + ShadCN (UI styling + component library)  
+- TypeScript  
+- Vercel (Deployment)
+
+---
+
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/replate.git
+
+# Navigate into the project directory
+cd replate
+
+# Install dependencies
+npm install
+
+# Run the development server
+npm run dev
 
 
-Use Case
-
-
-Features
-
-
-Tech Stack
-
-
-
-
-
-Next.js boilerplate
+Additional Next.js boilerplate
 ---------------------------------------------------------------------------------------------------------------------------------------
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).

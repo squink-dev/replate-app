@@ -66,16 +66,143 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  if (
-    request.nextUrl.pathname !== "/" &&
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  // Public routes that don't require authentication
+  const publicRoutes = [
+    "/",
+    "/auth/login",
+    "/auth/callback",
+    "/auth/error",
+    "/user/view", // Anyone can view locations
+  ];
+
+  const isPublicRoute = publicRoutes.some((route) =>
+    request.nextUrl.pathname.startsWith(route),
+  );
+
+  // If user is not authenticated and trying to access protected routes
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/auth/protected";
+    url.pathname = "/auth/login";
     return NextResponse.redirect(url);
+  }
+
+  // Role-based access control for authenticated users
+  if (user) {
+    const pathname = request.nextUrl.pathname;
+
+    // Get the active profile kind from cookie
+    const profileKindCookie = request.cookies.get("profile_kind")?.value as
+      | "user"
+      | "business"
+      | undefined;
+
+    // Check if user is trying to access business routes
+    if (pathname.startsWith("/business")) {
+      // Check both profiles
+      const [{ data: businessProfile }, { data: userProfile }] =
+        await Promise.all([
+          supabase
+            .from("business_profiles")
+            .select("id")
+            .eq("owner_id", user.sub)
+            .single(),
+          supabase
+            .from("user_profiles")
+            .select("user_id")
+            .eq("user_id", user.sub)
+            .single(),
+        ]);
+
+      if (!businessProfile) {
+        // User doesn't have a business profile, redirect to home
+        const url = request.nextUrl.clone();
+        url.pathname = "/";
+        url.searchParams.set("error", "business_access_denied");
+        return NextResponse.redirect(url);
+      }
+
+      // If user has both profiles but is logged in as user, deny access
+      if (businessProfile && userProfile && profileKindCookie === "user") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/";
+        url.searchParams.set(
+          "error",
+          "business_access_denied_switch_to_business",
+        );
+        return NextResponse.redirect(url);
+      }
+    }
+
+    // Check if user is trying to access user-specific routes (except /user/view and /user/signup)
+    if (
+      pathname.startsWith("/user") &&
+      !pathname.startsWith("/user/view") &&
+      !pathname.startsWith("/user/signup")
+    ) {
+      // Get the active profile kind from cookie
+      const profileKindCookie = request.cookies.get("profile_kind")?.value as
+        | "user"
+        | "business"
+        | undefined;
+
+      // Check both profiles to determine access
+      const [{ data: userProfile }, { data: businessProfile }] =
+        await Promise.all([
+          supabase
+            .from("user_profiles")
+            .select("user_id")
+            .eq("user_id", user.sub)
+            .single(),
+          supabase
+            .from("business_profiles")
+            .select("id")
+            .eq("owner_id", user.sub)
+            .single(),
+        ]);
+
+      console.log("[Middleware] /user route check:", {
+        pathname,
+        hasUserProfile: !!userProfile,
+        hasBusinessProfile: !!businessProfile,
+        activeProfileKind: profileKindCookie,
+      });
+
+      // If user has a business profile but no user profile, deny access
+      if (businessProfile && !userProfile) {
+        console.log(
+          "[Middleware] Denying access: has business but no user profile",
+        );
+        const url = request.nextUrl.clone();
+        url.pathname = "/";
+        url.searchParams.set("error", "user_access_denied");
+        return NextResponse.redirect(url);
+      }
+
+      // If user has neither profile, deny access
+      if (!userProfile) {
+        console.log("[Middleware] Denying access: no user profile");
+        const url = request.nextUrl.clone();
+        url.pathname = "/";
+        url.searchParams.set("error", "user_access_denied");
+        return NextResponse.redirect(url);
+      }
+
+      // If user has both profiles, check which one is active via cookie
+      if (userProfile && businessProfile) {
+        // If they're logged in as business (cookie says "business"), deny access to user routes
+        if (profileKindCookie === "business") {
+          console.log(
+            "[Middleware] Denying access: user has both profiles but is logged in as business",
+          );
+          const url = request.nextUrl.clone();
+          url.pathname = "/";
+          url.searchParams.set("error", "user_access_denied_switch_to_user");
+          return NextResponse.redirect(url);
+        }
+      }
+
+      console.log("[Middleware] Allowing access to /user route");
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

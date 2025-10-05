@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 // Map food descriptions to icon filenames
 const foodIconMap: Record<string, string> = {
@@ -45,6 +47,7 @@ export default function UserReservePage({
   params: Promise<{ locationId: string }>;
 }) {
   const router = useRouter();
+  const { profile, isLoading: authLoading } = useAuth();
   const [locationId, setLocationId] = useState<string>("");
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +60,10 @@ export default function UserReservePage({
     locationName: string;
     address: string;
   } | null>(null);
+
+  // Check if user is authenticated with a user profile
+  const isUserAuthenticated = profile?.kind === "user";
+  const isViewOnly = !isUserAuthenticated;
 
   useEffect(() => {
     const getParams = async () => {
@@ -213,6 +220,49 @@ export default function UserReservePage({
       <Header />
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-2xl mx-auto px-4">
+          {/* View-Only Banner for Unauthenticated Users */}
+          {isViewOnly && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <svg
+                  className="w-5 h-5 text-blue-600 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <title>Information</title>
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-blue-900 mb-1">
+                    Viewing Only
+                  </h3>
+                  <p className="text-sm text-blue-800 mb-2">
+                    You are viewing this page in read-only mode. To make a
+                    reservation, please{" "}
+                    <Link
+                      href="/auth/login"
+                      className="underline font-semibold hover:text-blue-900"
+                    >
+                      log in
+                    </Link>{" "}
+                    or{" "}
+                    <Link
+                      href="/user/signup"
+                      className="underline font-semibold hover:text-blue-900"
+                    >
+                      sign up
+                    </Link>
+                    .
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Header Section */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
             <button
@@ -223,7 +273,7 @@ export default function UserReservePage({
               ← Back to Search
             </button>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Reserve Food Items
+              {isViewOnly ? "View Food Items" : "Reserve Food Items"}
             </h1>
             {locationInfo && <div className="text-gray-600"></div>}
           </div>
@@ -300,8 +350,8 @@ export default function UserReservePage({
                             )}
                         </div>
 
-                        {/* Quantity Selector */}
-                        {maxReservable > 0 ? (
+                        {/* Quantity Selector - Only for authenticated users */}
+                        {!isViewOnly && maxReservable > 0 ? (
                           <div className="flex items-center gap-3">
                             <button
                               type="button"
@@ -333,11 +383,11 @@ export default function UserReservePage({
                               +
                             </button>
                           </div>
-                        ) : (
+                        ) : !isViewOnly && maxReservable === 0 ? (
                           <span className="text-red-600 text-sm">
                             Out of stock
                           </span>
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   );
@@ -346,8 +396,8 @@ export default function UserReservePage({
             )}
           </div>
 
-          {/* Reservation Summary */}
-          {reservationItems.length > 0 && (
+          {/* Reservation Summary - Only for authenticated users */}
+          {!isViewOnly && reservationItems.length > 0 && (
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 Reservation Summary

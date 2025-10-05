@@ -40,6 +40,25 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const PROFILE_KIND_KEY = "profile_kind";
+const PROFILE_KIND_COOKIE = "profile_kind";
+
+// Helper function to set profile kind in both localStorage and cookie
+const setProfileKind = (kind: "user" | "business") => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(PROFILE_KIND_KEY, kind);
+    // Set cookie for middleware access
+    document.cookie = `${PROFILE_KIND_COOKIE}=${kind}; path=/; max-age=31536000; SameSite=Lax`;
+  }
+};
+
+// Helper function to remove profile kind
+const removeProfileKind = () => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(PROFILE_KIND_KEY);
+    // Remove cookie
+    document.cookie = `${PROFILE_KIND_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+  }
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<AuthProfile>(null);

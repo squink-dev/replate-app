@@ -194,7 +194,7 @@ export default function UserView() {
           )}
 
           {userLocation && !geoLoading && (
-            <p className="text-green-600 text-sm text-center">
+            <p className="text-green-600 text-sm text-center pb-2">
               Using your current location
             </p>
           )}

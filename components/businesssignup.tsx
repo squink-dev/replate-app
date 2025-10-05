@@ -1,10 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "./ui/button";
 import {
@@ -36,6 +37,8 @@ type FormValues = z.infer<typeof formSchema>;
 export default function BusinessSignUp() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { refreshProfile } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -47,7 +50,7 @@ export default function BusinessSignUp() {
     },
   });
 
-  // Fetch the signed-in user's email on mount
+  // Fetch the signed-in user's email on mount and set profile kind
   useEffect(() => {
     const fetchUserEmail = async () => {
       const supabase = createClient();
@@ -59,7 +62,19 @@ export default function BusinessSignUp() {
       }
     };
     fetchUserEmail();
-  }, [form]);
+
+    // Store profile kind from URL or cookie
+    const kindFromUrl = searchParams.get("kind");
+    const kindFromCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("profile_kind="))
+      ?.split("=")[1];
+
+    const kind = kindFromUrl || kindFromCookie;
+    if (kind === "business") {
+      localStorage.setItem("profile_kind", "business");
+    }
+  }, [form, searchParams]);
 
   const businessTypeOptions = [
     { value: "restaurant", label: "Restaurant" },
@@ -102,6 +117,9 @@ export default function BusinessSignUp() {
 
       alert("Business profile created successfully!");
       form.reset();
+
+      // Refresh the auth context to load the new profile
+      await refreshProfile();
 
       // Redirect to business dashboard page
       router.push("/business/dashboard");

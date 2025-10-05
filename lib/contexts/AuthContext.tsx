@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .from("user_profiles")
             .select("*")
             .eq("user_id", user.id)
-            .single();
+            .maybeSingle();
 
           if (userProfile && mounted) {
             setProfile({
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .from("business_profiles")
             .select("*")
             .eq("owner_id", user.id)
-            .single();
+            .maybeSingle();
 
           if (businessProfile && mounted) {
             setProfile({
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .from("user_profiles")
           .select("*")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (userProfile && mounted) {
           if (typeof window !== "undefined") {
@@ -149,7 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .from("business_profiles")
           .select("*")
           .eq("owner_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (businessProfile && mounted) {
           if (typeof window !== "undefined") {
@@ -223,7 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .from("user_profiles")
           .select("*")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (userProfile) {
           setProfile({
@@ -246,7 +246,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .from("business_profiles")
           .select("*")
           .eq("owner_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (businessProfile) {
           setProfile({
@@ -268,7 +268,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from("user_profiles")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (userProfile) {
         if (typeof window !== "undefined") {
@@ -294,7 +294,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from("business_profiles")
         .select("*")
         .eq("owner_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (businessProfile) {
         if (typeof window !== "undefined") {

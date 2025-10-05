@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,6 +14,17 @@ export async function GET(request: Request) {
 
   // 'kind' can be 'user' or 'business' to indicate which profile to check
   const kind = searchParams.get("kind");
+
+  // Store the kind in a cookie so it can be read on the client side
+  if (kind === "user" || kind === "business") {
+    const cookieStore = await cookies();
+    cookieStore.set("profile_kind", kind, {
+      path: "/",
+      maxAge: 60 * 5, // 5 minutes, enough time to complete signup
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+  }
 
   if (code) {
     const supabase = await createClient();

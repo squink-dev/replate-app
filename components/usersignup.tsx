@@ -1,10 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { useAuth } from "@/lib/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "./ui/button";
 import {
@@ -41,6 +42,8 @@ export default function UserSignUp() {
   const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { refreshProfile } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -55,7 +58,7 @@ export default function UserSignUp() {
     },
   });
 
-  // Fetch the signed-in user's email on mount
+  // Fetch the signed-in user's email on mount and set profile kind
   useEffect(() => {
     const fetchUserEmail = async () => {
       const supabase = createClient();
@@ -67,7 +70,19 @@ export default function UserSignUp() {
       }
     };
     fetchUserEmail();
-  }, [form]);
+
+    // Store profile kind from URL or cookie
+    const kindFromUrl = searchParams.get("kind");
+    const kindFromCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("profile_kind="))
+      ?.split("=")[1];
+
+    const kind = kindFromUrl || kindFromCookie;
+    if (kind === "user") {
+      localStorage.setItem("profile_kind", "user");
+    }
+  }, [form, searchParams]);
 
   const jobStatusOptions = [
     { value: "unemployed", label: "Unemployed" },
@@ -134,6 +149,9 @@ export default function UserSignUp() {
       alert("User profile created successfully!");
       form.reset();
       setDietaryRestrictions([]);
+
+      // Refresh the auth context to load the new profile
+      await refreshProfile();
 
       // Redirect to user view page
       router.push("/user/view");

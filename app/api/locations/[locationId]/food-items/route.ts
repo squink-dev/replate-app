@@ -167,7 +167,6 @@ export async function POST(
       .insert({
         description,
         total_quantity: Number(total_quantity),
-        available_quantity: Number(total_quantity),
         reserved_quantity: 0,
         unit_label,
         pickup_point_id,

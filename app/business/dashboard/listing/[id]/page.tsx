@@ -445,9 +445,6 @@ export default function LocationView() {
                           <h3 className="font-semibold text-gray-800 text-lg">
                             {item.description}
                           </h3>
-                          <p className="text-sm text-gray-600">
-                            Pickup: {item.pickup_point?.name || "Unknown"}
-                          </p>
                         </div>
                         <div className="flex gap-2">
                           <button

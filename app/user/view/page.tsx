@@ -32,38 +32,43 @@ export default function UserView() {
     lon: number;
   } | null>(null);
   const [mapsApiKey, setMapsApiKey] = useState<string>("");
+  const [radiusKm, setRadiusKm] = useState("25");
 
-  const searchByCoordinates = useCallback(async (lat: number, lon: number) => {
-    setLoading(true);
-    setError("");
-    setBusinesses([]);
+  const searchByCoordinates = useCallback(
+    async (lat: number, lon: number) => {
+      setLoading(true);
+      setError("");
+      setBusinesses([]);
 
-    try {
-      const nearbyResponse = await fetch(
-        `/api/locations/nearby?lat=${lat}&lon=${lon}&limit=20`,
-      );
-      const nearbyData = await nearbyResponse.json();
+      try {
+        const radius = Number(radiusKm) || 25;
+        const nearbyResponse = await fetch(
+          `/api/locations/nearby?lat=${lat}&lon=${lon}&limit=20&radius_km=${radius}`,
+        );
+        const nearbyData = await nearbyResponse.json();
 
-      if (!nearbyData.success) {
-        setError("Unable to find nearby businesses");
-        return;
+        if (!nearbyData.success) {
+          setError("Unable to find nearby businesses");
+          return;
+        }
+
+        // Filter out businesses with zero available total quantity or no available items
+        const availableBusinesses = (nearbyData.locations || []).filter(
+          (business: Location) =>
+            business.available_total_quantity > 0 &&
+            business.available_item_count > 0,
+        );
+
+        setBusinesses(availableBusinesses);
+      } catch (err) {
+        console.error("Search error:", err);
+        setError("An error occurred while searching. Please try again.");
+      } finally {
+        setLoading(false);
       }
-
-      // Filter out businesses with zero available total quantity or no available items
-      const availableBusinesses = (nearbyData.locations || []).filter(
-        (business: Location) =>
-          business.available_total_quantity > 0 &&
-          business.available_item_count > 0,
-      );
-
-      setBusinesses(availableBusinesses);
-    } catch (err) {
-      console.error("Search error:", err);
-      setError("An error occurred while searching. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [radiusKm],
+  );
 
   const handleSearch = async () => {
     if (!locationInput.trim()) {
@@ -171,148 +176,190 @@ export default function UserView() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4 max-w-2xl">
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          Find Food Near You
-        </h1>
-
-        {geoLoading && (
-          <div className="text-center mb-6">
-            <p className="text-green-600">Getting your current location...</p>
-          </div>
-        )}
-
-        {userLocation && !geoLoading && (
-          <div className="text-center mb-4">
-            <p className="text-green-600 text-sm">
-              Using your current location
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Find Food Near You
+            </h1>
+            <p className="text-gray-600">
+              Search for available food items in your area
             </p>
           </div>
-        )}
 
-        <div className="mb-8">
-          <div className="flex gap-2 max-w-md mx-auto">
-            <input
-              type="text"
-              placeholder="Or enter a different location (address, city, zip code)"
-              value={locationInput}
-              onChange={(e) => setLocationInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              disabled={loading}
-            />
-            <button
-              type="button"
-              onClick={handleSearch}
-              disabled={loading}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {loading ? "Searching..." : "Search"}
-            </button>
-          </div>
-          {error && <p className="text-red-600 text-center mt-2">{error}</p>}
-        </div>
-
-        {businesses.length > 0 && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                Found {businesses.length} businesses with available food
-              </h2>
-
-              {/* Google Maps Integration */}
-              {mapsApiKey && userLocation && (
-                <div className="mb-6">
-                  <GoogleMap
-                    userLocation={userLocation}
-                    businesses={businesses}
-                    apiKey={mapsApiKey}
-                    onReserveClick={(locationId) =>
-                      router.push(`/user/reserve/${locationId}`)
-                    }
-                  />
-                  <p className="text-sm text-gray-500 mt-2 text-center">
-                    Click on markers to see business details •{" "}
-                    {businesses.length} locations shown
-                  </p>
-                </div>
-              )}
-
-              {/* Fallback message if no API key */}
-              {!mapsApiKey && userLocation && (
-                <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-yellow-800 text-sm">
-                    Map view unavailable - showing list view only
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <div className="grid gap-4">
-                {businesses.map((business) => (
-                  <div
-                    key={business.location_id}
-                    className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <h4 className="text-xl font-semibold text-gray-900">
-                        {business.business_name}
-                      </h4>
-                      <span className="text-sm text-gray-500">
-                        {business.distance_km.toFixed(1)} km away
-                      </span>
-                    </div>
-
-                    <div className="text-gray-600 mb-4">
-                      <h5 className="font-medium">{business.location_name}</h5>
-                      <p className="text-sm">{business.address}</p>
-                    </div>
-
-                    <div className="flex gap-4 text-sm mb-4">
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                        {business.available_item_count} food items available
-                      </span>
-                    </div>
-
-                    {business.pickup_point_name && (
-                      <p className="text-sm text-gray-500 mb-4">
-                        Pickup point: {business.pickup_point_name}
-                      </p>
-                    )}
-
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          router.push(`/user/reserve/${business.location_id}`)
-                        }
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer"
-                        disabled={business.available_item_count === 0}
-                      >
-                        {business.available_item_count > 0
-                          ? "Reserve Items"
-                          : "No Items Available"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!loading &&
-          !geoLoading &&
-          businesses.length === 0 &&
-          (userLocation || locationInput) &&
-          !error && (
-            <div className="text-center py-8">
-              <p className="text-gray-600">
-                No businesses found with available food in this area.
+          {geoLoading && (
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <p className="text-green-600 text-center">
+                Getting your current location...
               </p>
             </div>
           )}
+
+          {userLocation && !geoLoading && (
+            <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+              <p className="text-green-600 text-sm text-center">
+                Using your current location
+              </p>
+            </div>
+          )}
+
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter a location (address, city, zip code)"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  {loading ? "Searching..." : "Search"}
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor="radiusKm"
+                  className="text-sm font-medium text-gray-700 whitespace-nowrap"
+                >
+                  Search Radius:
+                </label>
+                <select
+                  id="radiusKm"
+                  value={radiusKm}
+                  onChange={(e) => setRadiusKm(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  disabled={loading}
+                >
+                  <option value="5">5 km</option>
+                  <option value="10">10 km</option>
+                  <option value="15">15 km</option>
+                  <option value="25">25 km</option>
+                  <option value="50">50 km</option>
+                  <option value="100">100 km</option>
+                </select>
+              </div>
+            </div>
+            {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
+          </div>
+
+          {businesses.length > 0 && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                  Found {businesses.length}{" "}
+                  {businesses.length === 1 ? "location" : "locations"} with
+                  available food
+                </h2>
+
+                {/* Google Maps Integration */}
+                {mapsApiKey && userLocation && (
+                  <div className="mb-6">
+                    <GoogleMap
+                      userLocation={userLocation}
+                      businesses={businesses}
+                      apiKey={mapsApiKey}
+                      onReserveClick={(locationId) =>
+                        router.push(`/user/reserve/${locationId}`)
+                      }
+                    />
+                    <p className="text-sm text-gray-500 mt-2 text-center">
+                      Click on markers to see business details •{" "}
+                      {businesses.length} locations shown
+                    </p>
+                  </div>
+                )}
+
+                {/* Fallback message if no API key */}
+                {!mapsApiKey && userLocation && (
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-yellow-800 text-sm">
+                      Map view unavailable - showing list view only
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="grid gap-4">
+                  {businesses.map((business) => (
+                    <div
+                      key={business.location_id}
+                      className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="text-xl font-semibold text-gray-900">
+                          {business.business_name}
+                        </h4>
+                        <span className="text-sm text-gray-500">
+                          {business.distance_km.toFixed(1)} km away
+                        </span>
+                      </div>
+
+                      <div className="text-gray-600 mb-4">
+                        <h5 className="font-medium">
+                          {business.location_name}
+                        </h5>
+                        <p className="text-sm">{business.address}</p>
+                      </div>
+
+                      <div className="flex gap-4 text-sm mb-4">
+                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                          {business.available_item_count} food items available
+                        </span>
+                      </div>
+
+                      {business.pickup_point_name && (
+                        <p className="text-sm text-gray-500 mb-4">
+                          Pickup point: {business.pickup_point_name}
+                        </p>
+                      )}
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            router.push(`/user/reserve/${business.location_id}`)
+                          }
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer"
+                          disabled={business.available_item_count === 0}
+                        >
+                          {business.available_item_count > 0
+                            ? "Reserve Items"
+                            : "No Items Available"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!loading &&
+            !geoLoading &&
+            businesses.length === 0 &&
+            (userLocation || locationInput) &&
+            !error && (
+              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                <p className="text-gray-600">
+                  No locations found with available food within {radiusKm} km.
+                </p>
+                <p className="text-gray-500 text-sm mt-2">
+                  Try increasing the search radius or searching a different
+                  location.
+                </p>
+              </div>
+            )}
+        </div>
       </div>
       <Footer />
     </>

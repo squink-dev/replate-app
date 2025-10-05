@@ -1,24 +1,24 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
-import Image from "next/image";
 
 // Map food descriptions to icon filenames
 const foodIconMap: Record<string, string> = {
-  "Apple": "Apple.png",
-  "Banana": "banana.png",
-  "Carrot": "Carrot.png",
-  "Eggs": "egg.png",
-  "Donut": "Donut.jpg",
+  Apple: "Apple.png",
+  Banana: "banana.png",
+  Carrot: "Carrot.png",
+  Eggs: "egg.png",
+  Donut: "Donut.jpg",
   "Grilled Bagel": "GrilledBagel.png",
-  "Hashbrown": "Hashbrown.png",
-  "Milk": "Milk.png",
+  Hashbrown: "Hashbrown.png",
+  Milk: "Milk.png",
   "Tuna Sandwich": "TunaSandwich.png",
-  "Wrap": "Wrap.png",
-  "Yogurt": "Yogurt.png",
+  Wrap: "Wrap.png",
+  Yogurt: "Yogurt.png",
 };
 
 interface FoodItem {
@@ -49,7 +49,9 @@ export default function UserReservePage({
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [reservationItems, setReservationItems] = useState<ReservationItem[]>([]);
+  const [reservationItems, setReservationItems] = useState<ReservationItem[]>(
+    [],
+  );
   const [locationInfo, setLocationInfo] = useState<{
     businessName: string;
     locationName: string;

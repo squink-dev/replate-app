@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+
+import Footer from "@/components/footer";
 import Header from "@/components/header";
 
 interface Location {
@@ -128,6 +130,7 @@ export default function BusinessDashboard() {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

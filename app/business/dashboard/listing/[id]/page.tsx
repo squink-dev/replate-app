@@ -2,6 +2,9 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+
+import Footer from "@/components/footer";
+
 import Header from "@/components/header";
 
 interface FoodItem {
@@ -129,7 +132,6 @@ export default function LocationView() {
               </button>
             )}
           </div>
-
           {/* Food Items List */}
           <div className="border-t border-gray-200 pt-4">
             {foodItems.length === 0 ? (
@@ -172,6 +174,7 @@ export default function LocationView() {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

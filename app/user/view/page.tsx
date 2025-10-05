@@ -27,10 +27,7 @@ export default function UserView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [geoLoading, setGeoLoading] = useState(true);
-  const [userLocation, setUserLocation] = useState<{
-    lat: number;
-    lon: number;
-  } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [mapsApiKey, setMapsApiKey] = useState<string>("");
   const [radiusKm, setRadiusKm] = useState("25");
 
@@ -43,7 +40,7 @@ export default function UserView() {
       try {
         const radius = Number(radiusKm) || 25;
         const nearbyResponse = await fetch(
-          `/api/locations/nearby?lat=${lat}&lon=${lon}&limit=20&radius_km=${radius}`,
+          `/api/locations/nearby?lat=${lat}&lon=${lon}&limit=20&radius_km=${radius}`
         );
         const nearbyData = await nearbyResponse.json();
 
@@ -52,11 +49,9 @@ export default function UserView() {
           return;
         }
 
-        // Filter out businesses with zero available total quantity or no available items
         const availableBusinesses = (nearbyData.locations || []).filter(
           (business: Location) =>
-            business.available_total_quantity > 0 &&
-            business.available_item_count > 0,
+            business.available_total_quantity > 0 && business.available_item_count > 0
         );
 
         setBusinesses(availableBusinesses);
@@ -67,7 +62,7 @@ export default function UserView() {
         setLoading(false);
       }
     },
-    [radiusKm],
+    [radiusKm]
   );
 
   const handleSearch = async () => {
@@ -81,10 +76,7 @@ export default function UserView() {
     setBusinesses([]);
 
     try {
-      // First geocode the address
-      const geocodeResponse = await fetch(
-        `/api/geocode?address=${encodeURIComponent(locationInput)}`,
-      );
+      const geocodeResponse = await fetch(`/api/geocode?address=${encodeURIComponent(locationInput)}`);
       const geocodeData = await geocodeResponse.json();
 
       if (!geocodeData.success) {
@@ -92,11 +84,7 @@ export default function UserView() {
         return;
       }
 
-      // Update user location and search
-      setUserLocation({
-        lat: geocodeData.latitude,
-        lon: geocodeData.longitude,
-      });
+      setUserLocation({ lat: geocodeData.latitude, lon: geocodeData.longitude });
       await searchByCoordinates(geocodeData.latitude, geocodeData.longitude);
     } catch (err) {
       console.error("Search error:", err);
@@ -127,16 +115,13 @@ export default function UserView() {
 
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage =
-              "Location access denied. Please enter your location manually.";
+            errorMessage = "Location access denied. Please enter your location manually.";
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage =
-              "Location information unavailable. Please enter your location manually.";
+            errorMessage = "Location information unavailable. Please enter your location manually.";
             break;
           case error.TIMEOUT:
-            errorMessage =
-              "Location request timed out. Please enter your location manually.";
+            errorMessage = "Location request timed out. Please enter your location manually.";
             break;
         }
 
@@ -146,31 +131,23 @@ export default function UserView() {
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 300000, // 5 minutes
-      },
+        maximumAge: 300000,
+      }
     );
   }, [searchByCoordinates]);
 
   useEffect(() => {
     getCurrentLocation();
-
-    // Fetch Google Maps API key
     fetch("/api/maps/config")
       .then((response) => response.json())
       .then((data) => {
-        if (data.apiKey) {
-          setMapsApiKey(data.apiKey);
-        }
+        if (data.apiKey) setMapsApiKey(data.apiKey);
       })
-      .catch((error) => {
-        console.error("Failed to fetch Maps API key:", error);
-      });
+      .catch((error) => console.error("Failed to fetch Maps API key:", error));
   }, [getCurrentLocation]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
+    if (e.key === "Enter") handleSearch();
   };
 
   return (
@@ -179,84 +156,74 @@ export default function UserView() {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-3xl mx-auto px-4">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Find Food Near You
-            </h1>
-            <p className="text-gray-600">
-              Search for available food items in your area
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Find Food Near You</h1>
+            <p className="text-gray-600">Search for available food items in your area</p>
           </div>
 
-          {geoLoading && (
-            <p className="text-green-600 text-center">
-              Getting your current location...
-            </p>
-          )}
-
+          {geoLoading && <p className="text-green-600 text-center">Getting your current location...</p>}
           {userLocation && !geoLoading && (
-            <p className="text-green-600 text-sm text-center pb-2">
-              Using your current location
-            </p>
+            <p className="text-green-600 text-sm text-center pb-2">Using your current location</p>
           )}
 
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <div className="space-y-4">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Enter a location (address, city, zip code)"
-                  value={locationInput}
-                  onChange={(e) => setLocationInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  disabled={loading}
-                />
+              <input
+                type="text"
+                placeholder="Enter a location (address, city, zip code)"
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                disabled={loading}
+              />
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <div className="flex items-center gap-3 flex-1">
+                  <label
+                    htmlFor="radiusKm"
+                    className="text-sm font-medium text-gray-700 whitespace-nowrap"
+                  >
+                    Search Radius:
+                  </label>
+                  <select
+                    id="radiusKm"
+                    value={radiusKm}
+                    onChange={(e) => setRadiusKm(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    disabled={loading}
+                  >
+                    <option value="5">5 km</option>
+                    <option value="10">10 km</option>
+                    <option value="15">15 km</option>
+                    <option value="25">25 km</option>
+                    <option value="50">50 km</option>
+                    <option value="100">100 km</option>
+                  </select>
+                </div>
+
                 <button
                   type="button"
                   onClick={handleSearch}
                   disabled={loading}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium w-full sm:w-auto"
                 >
                   {loading ? "Searching..." : "Search"}
                 </button>
               </div>
-
-              <div className="flex items-center gap-3">
-                <label
-                  htmlFor="radiusKm"
-                  className="text-sm font-medium text-gray-700 whitespace-nowrap"
-                >
-                  Search Radius:
-                </label>
-                <select
-                  id="radiusKm"
-                  value={radiusKm}
-                  onChange={(e) => setRadiusKm(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  disabled={loading}
-                >
-                  <option value="5">5 km</option>
-                  <option value="10">10 km</option>
-                  <option value="15">15 km</option>
-                  <option value="25">25 km</option>
-                  <option value="50">50 km</option>
-                  <option value="100">100 km</option>
-                </select>
-              </div>
             </div>
+
             {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
           </div>
 
+          {/* Results + Map stay identical */}
           {businesses.length > 0 && (
             <div className="space-y-6">
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-2xl font-semibold text-gray-800 mb-4">
                   Found {businesses.length}{" "}
-                  {businesses.length === 1 ? "location" : "locations"} with
-                  available food
+                  {businesses.length === 1 ? "location" : "locations"} with available food
                 </h2>
 
-                {/* Google Maps Integration */}
                 {mapsApiKey && userLocation && (
                   <div className="mb-6">
                     <GoogleMap
@@ -268,13 +235,11 @@ export default function UserView() {
                       }
                     />
                     <p className="text-sm text-gray-500 mt-2 text-center">
-                      Click on markers to see business details •{" "}
-                      {businesses.length} locations shown
+                      Click on markers to see business details • {businesses.length} locations shown
                     </p>
                   </div>
                 )}
 
-                {/* Fallback message if no API key */}
                 {!mapsApiKey && userLocation && (
                   <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-yellow-800 text-sm">
@@ -301,9 +266,7 @@ export default function UserView() {
                       </div>
 
                       <div className="text-gray-600 mb-4">
-                        <h5 className="font-medium">
-                          {business.location_name}
-                        </h5>
+                        <h5 className="font-medium">{business.location_name}</h5>
                         <p className="text-sm">{business.address}</p>
                       </div>
 
@@ -340,21 +303,16 @@ export default function UserView() {
             </div>
           )}
 
-          {!loading &&
-            !geoLoading &&
-            businesses.length === 0 &&
-            (userLocation || locationInput) &&
-            !error && (
-              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                <p className="text-gray-600">
-                  No locations found with available food within {radiusKm} km.
-                </p>
-                <p className="text-gray-500 text-sm mt-2">
-                  Try increasing the search radius or searching a different
-                  location.
-                </p>
-              </div>
-            )}
+          {!loading && !geoLoading && businesses.length === 0 && (userLocation || locationInput) && !error && (
+            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+              <p className="text-gray-600">
+                No locations found with available food within {radiusKm} km.
+              </p>
+              <p className="text-gray-500 text-sm mt-2">
+                Try increasing the search radius or searching a different location.
+              </p>
+            </div>
+          )}
         </div>
       </div>
       <Footer />

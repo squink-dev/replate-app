@@ -93,7 +93,7 @@ export async function updateSession(request: NextRequest) {
     // Check if user is trying to access business routes
     if (
       pathname.startsWith("/business") &&
-      !!pathname.startsWith("/business/signup")
+      !pathname.startsWith("/business/signup")
     ) {
       // Verify user has a business profile
       const { data: businessProfile } = await supabase

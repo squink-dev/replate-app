@@ -116,6 +116,7 @@ export async function updateSession(request: NextRequest) {
     if (
       pathname.startsWith("/user") &&
       !pathname.startsWith("/user/view") &&
+      !pathname.startsWith("/user/reserve") &&
       !pathname.startsWith("/user/signup")
     ) {
       // Verify user has a user profile

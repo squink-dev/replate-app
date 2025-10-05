@@ -71,7 +71,7 @@ export default function Header() {
                   d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
                 />
               </svg>
-              My Reservations
+              <span className="hidden md:inline">My Reservations</span>
             </Link>
           )}
 
@@ -86,7 +86,7 @@ export default function Header() {
                 <div className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center font-semibold">
                   {getInitials()}
                 </div>
-                <div className="text-left">
+                <div className="text-left hidden md:block">
                   <div className="text-sm font-semibold text-gray-800">
                     {getDisplayName()}
                   </div>
@@ -97,7 +97,7 @@ export default function Header() {
                   </div>
                 </div>
                 <svg
-                  className={`w-4 h-4 text-gray-600 transition-transform ${
+                  className={`w-4 h-4 text-gray-600 transition-transform hidden md:block ${
                     isMenuOpen ? "rotate-180" : ""
                   }`}
                   fill="none"
@@ -118,10 +118,10 @@ export default function Header() {
                 <>
                   <button
                     type="button"
-                    className="fixed inset-0 z-10 bg-transparent border-0 p-0 m-0 focus:outline-none"
+                    className="fixed inset-0 z-10 bg-transparent border-0 p-0 m-0 focus:outline-none cursor-default"
                     onClick={() => setIsMenuOpen(false)}
                     aria-label="Close menu"
-                  ></button>
+                  />
                   <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
                     <div className="px-4 py-3 border-b border-gray-100">
                       <div className="font-semibold text-gray-800">
@@ -134,7 +134,7 @@ export default function Header() {
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer"
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer relative z-30"
                     >
                       <svg
                         className="w-4 h-4"

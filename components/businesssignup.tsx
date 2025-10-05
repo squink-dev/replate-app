@@ -1,65 +1,117 @@
 "use client";
 
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "./ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "./ui/form";
+import { Input } from "./ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+
+const formSchema = z.object({
+  businessName: z.string().min(1, "Business name is required"),
+  email: z.string().email("Invalid email address"),
+  businessType: z.string().min(1, "Please select a business type"),
+  phone: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function BusinessSignUp() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      businessName: "",
+      email: "",
+      businessType: "",
+      phone: "",
+    },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  // Fetch the signed-in user's email on mount
+  useEffect(() => {
+    const fetchUserEmail = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user?.email) {
+        form.setValue("email", user.email);
+      }
+    };
+    fetchUserEmail();
+  }, [form]);
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const businessTypeOptions = [
+    { value: "restaurant", label: "Restaurant" },
+    { value: "grocery", label: "Grocery Store" },
+    { value: "bakery", label: "Bakery" },
+    { value: "cafe", label: "Cafe" },
+    { value: "catering", label: "Catering" },
+    { value: "distributor", label: "Distributor" },
+    { value: "food bank", label: "Food Bank" },
+    { value: "other", label: "Other" },
+  ];
 
-  const validateForm = () => {
-    if (!formData.name || !formData.email || !formData.password) {
-      alert("Please fill in all fields.");
-      return false;
-    }
-    if (!validateEmail(formData.email)) {
-      alert("Please enter a valid email address.");
-      return false;
-    }
-    if (formData.password.length < 8) {
-      alert("Password must be at least 8 characters long.");
-      return false;
-    }
-    if (!/\d/.test(formData.password) || !/[A-Z]/.test(formData.password)) {
-      alert(
-        "Password must contain at least one number and one uppercase letter.",
-      );
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-
-    const payload = { ...formData };
-    console.log(payload);
-
+  const onSubmit = async (values: FormValues) => {
+    setIsSubmitting(true);
     try {
-      const res = await fetch("/api/users", {
+      const res = await fetch("/api/business", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(values),
       });
 
-      if (!res.ok) throw new Error("Failed to submit");
-      alert("Business registered successfully!");
-      setFormData({ name: "", email: "", password: "" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Handle specific error cases
+        if (res.status === 401) {
+          alert(
+            "You must be logged in to create a business profile. Please log in and try again.",
+          );
+        } else if (res.status === 409) {
+          alert("A business profile already exists for this account.");
+        } else {
+          alert(
+            data.error ||
+              "Failed to create business profile. Please try again.",
+          );
+        }
+        return;
+      }
+
+      alert("Business profile created successfully!");
+      form.reset();
+
+      // Redirect to business dashboard page
+      router.push("/business/dashboard");
     } catch (err) {
-      alert("Something went wrong. Please try again.");
-      console.log(err);
+      console.error("Error submitting form:", err);
+      alert(
+        "Something went wrong. Please check your connection and try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -67,76 +119,107 @@ export default function BusinessSignUp() {
     <div className="flex items-center justify-center min-h-screen bg-gray-50 px-6 py-12">
       <div className="bg-white shadow-lg rounded-2xl border border-gray-200 w-full max-w-md p-8">
         <h1 className="text-4xl font-extrabold text-gray-800 text-center mb-8">
-          Business Sign Up
+          Register your business
         </h1>
-
-        <div className="flex flex-col gap-6">
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-gray-700 font-medium mb-2"
-            >
-              Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter your name"
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-gray-700 font-medium mb-2"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-gray-700 font-medium mb-2"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter a strong password"
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full"
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              Must include at least 8 characters, one uppercase letter, and one
-              number.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="bg-green-600 text-white rounded-lg px-4 py-2 hover:bg-green-700 transition-colors w-full font-semibold"
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-6"
           >
-            Sign Up
-          </button>
-        </div>
+            <FormField
+              control={form.control}
+              name="businessName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Business Name <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your business name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Email <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      {...field}
+                      disabled
+                      className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="businessType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Business Type <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your business type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {businessTypeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="tel"
+                      placeholder="Enter your phone number"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="mt-4">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </div>
     </div>
   );

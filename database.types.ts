@@ -260,6 +260,7 @@ export type Database = {
           expires_at: string;
           id: string;
           pickup_point_id: string;
+          pickup_token: string;
           start_at: string;
           status: Database["public"]["Enums"]["reservation_status_enum"];
           user_id: string;
@@ -269,6 +270,7 @@ export type Database = {
           expires_at: string;
           id?: string;
           pickup_point_id: string;
+          pickup_token?: string;
           start_at?: string;
           status?: Database["public"]["Enums"]["reservation_status_enum"];
           user_id: string;
@@ -278,6 +280,7 @@ export type Database = {
           expires_at?: string;
           id?: string;
           pickup_point_id?: string;
+          pickup_token?: string;
           start_at?: string;
           status?: Database["public"]["Enums"]["reservation_status_enum"];
           user_id?: string;

@@ -10,6 +10,10 @@ export default function LogoutPage() {
   useEffect(() => {
     const signOut = async () => {
       const supabase = createClient();
+      // Clear the profile kind from localStorage
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("profile_kind");
+      }
       await supabase.auth.signOut();
       router.push("/");
     };

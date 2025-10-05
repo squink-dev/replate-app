@@ -62,14 +62,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Get stored preference
+        // Check URL for kind parameter (takes precedence over stored preference)
+        let kindFromUrl: "user" | "business" | null = null;
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          const urlKind = params.get("kind");
+          if (urlKind === "user" || urlKind === "business") {
+            kindFromUrl = urlKind;
+            // Update localStorage with the URL kind
+            localStorage.setItem(PROFILE_KIND_KEY, urlKind);
+          }
+        }
+
+        // Get stored preference (but URL takes precedence)
         const storedKind =
-          typeof window !== "undefined"
+          kindFromUrl ||
+          (typeof window !== "undefined"
             ? (localStorage.getItem(PROFILE_KIND_KEY) as
                 | "user"
                 | "business"
                 | null)
-            : null;
+            : null);
 
         // Try preferred profile type first
         if (storedKind === "user") {

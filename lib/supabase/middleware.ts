@@ -103,6 +103,7 @@ export async function updateSession(request: NextRequest) {
         // User doesn't have a business profile, redirect to home
         const url = request.nextUrl.clone();
         url.pathname = "/";
+        url.searchParams.set("kind", "business");
         url.searchParams.set("error", "business_access_denied");
         return NextResponse.redirect(url);
       }
@@ -125,6 +126,7 @@ export async function updateSession(request: NextRequest) {
         // User doesn't have a user profile, redirect to home
         const url = request.nextUrl.clone();
         url.pathname = "/";
+        url.searchParams.set("kind", "user");
         url.searchParams.set("error", "user_access_denied");
         return NextResponse.redirect(url);
       }

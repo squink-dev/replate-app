@@ -174,7 +174,7 @@ export default function UserView() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4 max-w-6xl">
+      <div className="container mx-auto p-4 max-w-2xl">
         <h1 className="text-3xl font-bold mb-6 text-center">
           Find Food Near You
         </h1>
@@ -192,14 +192,6 @@ export default function UserView() {
             <p className="text-green-600 text-sm">
               ✅ Using your current location
             </p>
-            <button
-              type="button"
-              onClick={getCurrentLocation}
-              disabled={loading || geoLoading}
-              className="text-green-600 hover:text-green-800 text-sm underline mt-1 disabled:text-gray-400"
-            >
-              Refresh location
-            </button>
           </div>
         )}
 
@@ -236,31 +228,6 @@ export default function UserView() {
               {/* Google Maps Integration */}
               {mapsApiKey && userLocation && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-medium text-gray-700 mb-3">
-                    🗺️ Map View
-                  </h3>
-                  <div className="border border-orange-200 bg-orange-50 p-4 rounded-lg mb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-orange-600">⚠️</span>
-                      <div>
-                        <p className="text-orange-800 font-medium text-sm">
-                          Maps JavaScript API Not Enabled
-                        </p>
-                        <p className="text-orange-700 text-xs mt-1">
-                          Enable "Maps JavaScript API" in Google Cloud Console
-                          to see the interactive map
-                        </p>
-                        <a
-                          href="https://console.cloud.google.com/apis/library/maps-backend.googleapis.com"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-orange-600 text-xs underline hover:text-orange-800 mt-1 inline-block"
-                        >
-                          → Enable Maps JavaScript API
-                        </a>
-                      </div>
-                    </div>
-                  </div>
                   <GoogleMap
                     userLocation={userLocation}
                     businesses={businesses}

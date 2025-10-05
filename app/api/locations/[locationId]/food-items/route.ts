@@ -19,11 +19,12 @@ export async function GET(
     // Create Supabase client
     const supabase = await createClient();
 
-    // Get location details
+    // Get location details (exclude archived)
     const { data: location, error: locationError } = await supabase
       .from("business_locations")
       .select("id, name, address, pickup_points(id, name, is_default)")
       .eq("id", locationId)
+      .eq("archived", false)
       .single();
 
     if (locationError || !location) {
@@ -365,34 +366,6 @@ export async function DELETE(
       return NextResponse.json(
         { error: "Food item does not belong to this location" },
         { status: 403 },
-      );
-    }
-
-    // Check if there are any reservation items (past or present) referencing this food item
-    const { data: reservationItems, error: reservationError } = await supabase
-      .from("reservation_items")
-      .select("id")
-      .eq("food_item_id", id)
-      .limit(1);
-
-    if (reservationError) {
-      console.error("Error checking reservation items:", reservationError);
-      return NextResponse.json(
-        {
-          error: "Failed to check reservations",
-          details: reservationError.message,
-        },
-        { status: 500 },
-      );
-    }
-
-    if (reservationItems && reservationItems.length > 0) {
-      return NextResponse.json(
-        {
-          error:
-            "Cannot archive food item with reservation history. This item has been reserved before and must be kept for record-keeping purposes.",
-        },
-        { status: 400 },
       );
     }
 

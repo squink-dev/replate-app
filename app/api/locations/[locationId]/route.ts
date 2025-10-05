@@ -19,7 +19,7 @@ export async function GET(
     // Create Supabase client
     const supabase = await createClient();
 
-    // Get location details
+    // Get location details (exclude archived)
     const { data: locationData, error: locationError } = await supabase
       .from("business_locations")
       .select(`
@@ -29,6 +29,7 @@ export async function GET(
         business_id
       `)
       .eq("id", locationId)
+      .eq("archived", false)
       .single();
 
     if (locationError) {

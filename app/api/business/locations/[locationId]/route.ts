@@ -173,7 +173,7 @@ export async function DELETE(
       );
     }
 
-    // Check if there are any food items at this location
+    // Check if there are any active (non-archived) food items or active reservations at this location
     const { data: pickupPoints } = await supabase
       .from("pickup_points")
       .select("id")
@@ -181,6 +181,8 @@ export async function DELETE(
 
     if (pickupPoints && pickupPoints.length > 0) {
       const pickupPointIds = pickupPoints.map((pp) => pp.id);
+
+      // Check for non-archived food items
       const { data: foodItems } = await supabase
         .from("food_items")
         .select("id")
@@ -191,30 +193,48 @@ export async function DELETE(
         return NextResponse.json(
           {
             error:
-              "Cannot delete location with existing food items. Please archive or remove all food items first.",
+              "Cannot archive location with active food items. Please archive all food items first.",
+          },
+          { status: 400 },
+        );
+      }
+
+      // Check for active reservations
+      const { data: activeReservations } = await supabase
+        .from("reservations")
+        .select("id")
+        .in("pickup_point_id", pickupPointIds)
+        .eq("status", "active")
+        .limit(1);
+
+      if (activeReservations && activeReservations.length > 0) {
+        return NextResponse.json(
+          {
+            error:
+              "Cannot archive location with active reservations. Wait for all reservations to be completed first.",
           },
           { status: 400 },
         );
       }
     }
 
-    // Delete the location
-    const { error: deleteError } = await supabase
+    // Archive the location instead of deleting
+    const { error: archiveError } = await supabase
       .from("business_locations")
-      .delete()
+      .update({ archived: true })
       .eq("id", locationId);
 
-    if (deleteError) {
-      console.error("Error deleting location:", deleteError);
+    if (archiveError) {
+      console.error("Error archiving location:", archiveError);
       return NextResponse.json(
-        { error: "Failed to delete location", details: deleteError.message },
+        { error: "Failed to archive location", details: archiveError.message },
         { status: 500 },
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: "Location deleted successfully",
+      message: "Location archived successfully",
     });
   } catch (error) {
     console.error("Error deleting location:", error);

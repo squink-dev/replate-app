@@ -111,9 +111,13 @@ export default function BusinessDashboard() {
     }
   };
 
-  // Delete location
+  // Archive location
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this location?")) {
+    if (
+      !confirm(
+        "Archive this location? It will no longer appear in listings but will be kept for record-keeping.",
+      )
+    ) {
       return;
     }
 
@@ -128,18 +132,16 @@ export default function BusinessDashboard() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to delete location");
+        throw new Error(data.error || "Failed to archive location");
       }
 
       setLocations((prev) => prev.filter((loc) => loc.id !== id));
-      alert("Location deleted successfully!");
+      alert("Location archived successfully!");
     } catch (err) {
       console.error(err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Failed to delete location. It may have food items that need to be removed first.",
-      );
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to archive location.";
+      alert(errorMessage);
     } finally {
       setIsDeleting(null);
     }
@@ -359,7 +361,7 @@ export default function BusinessDashboard() {
                                     onClick={() => handleDelete(loc.id)}
                                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                   >
-                                    Delete
+                                    Archive
                                   </button>
                                 </div>
                               </>

@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("business_locations")
       .select("*")
+      .eq("archived", false)
       .order("created_at", { ascending: false });
 
     if (businessId) {

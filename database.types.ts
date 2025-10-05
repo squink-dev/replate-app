@@ -17,6 +17,7 @@ export type Database = {
       business_locations: {
         Row: {
           address: string;
+          archived: boolean;
           business_id: string;
           created_at: string;
           geom: unknown | null;
@@ -28,6 +29,7 @@ export type Database = {
         };
         Insert: {
           address: string;
+          archived?: boolean;
           business_id: string;
           created_at?: string;
           geom?: unknown | null;
@@ -39,6 +41,7 @@ export type Database = {
         };
         Update: {
           address?: string;
+          archived?: boolean;
           business_id?: string;
           created_at?: string;
           geom?: unknown | null;

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-
 import Footer from "@/components/footer";
 import Header from "@/components/header";
 
@@ -47,6 +46,7 @@ export default function BusinessDashboard() {
   return (
     <>
       <Header />
+
       <div className="min-h-screen bg-gray-50 flex flex-col px-6 py-12">
         <div className="max-w-3xl mx-auto w-full bg-white shadow-lg rounded-2xl border border-gray-200 p-8">
           {/* Header */}
@@ -130,6 +130,7 @@ export default function BusinessDashboard() {
           </div>
         </div>
       </div>
+
       <Footer />
     </>
   );

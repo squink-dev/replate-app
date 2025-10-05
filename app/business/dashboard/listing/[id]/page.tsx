@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
@@ -14,7 +14,6 @@ interface FoodItem {
 
 export default function LocationView() {
   const { id } = useParams();
-  const router = useRouter();
 
   // Mock: in real app, you'd fetch location info from API
   const locationName = `Location #${id}`;
@@ -75,23 +74,14 @@ export default function LocationView() {
       <div className="min-h-screen bg-gray-50 flex flex-col px-6 py-12">
         <div className="max-w-3xl mx-auto w-full bg-white shadow-lg rounded-2xl border border-gray-200 p-8">
           {/* Header Section */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                {locationName}
-              </h1>
-              <p className="text-gray-500">
-                Manage your food items here — add, edit, or delete supplies at
-                this location.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => router.push("/business/dashboard")}
-              className="bg-gray-100 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
-            >
-              ← Back to Dashboard
-            </button>
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              {locationName}
+            </h1>
+            <p className="text-gray-500">
+              Manage your food items here — add, edit, or delete supplies at
+              this location.
+            </p>
           </div>
 
           {/* Add/Edit Form */}
@@ -173,7 +163,7 @@ export default function LocationView() {
             )}
           </div>
 
-          {/* Back to Dashboard Button (also here for mobile UX) */}
+          {/* Back to Dashboard Button (works great for both mobile & desktop) */}
           <div className="text-center">
             <Link
               href="/business/dashboard"

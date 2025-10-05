@@ -36,7 +36,7 @@ export default function Header() {
     <header className="w-full border-b bg-white shadow-sm">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/" className="text-2xl font-extrabold text-green-600">
-          Free Food Findr
+          Replate
         </Link>
 
         {!isLoading && profile && (
@@ -45,7 +45,7 @@ export default function Header() {
               type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Toggle profile menu"
-              className="flex items-center gap-3 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors"
+              className="flex items-center gap-3 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors cursor-pointer"
             >
               <div className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center font-semibold">
                 {getInitials()}
@@ -98,7 +98,7 @@ export default function Header() {
                   <button
                     type="button"
                     onClick={handleSignOut}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer"
                   >
                     <svg
                       className="w-4 h-4"

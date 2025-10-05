@@ -22,7 +22,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/15 to-white/25"></div>
       </div>
 
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className="relative flex flex-col min-h-screen">
         <Header />
         <HomePage />
         <Footer />

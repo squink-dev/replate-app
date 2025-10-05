@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import Footer from "@/components/footer";
 import { GoogleMap } from "@/components/GoogleMap";
@@ -23,6 +24,7 @@ interface Location {
 }
 
 export default function UserView() {
+  const router = useRouter();
   const [locationInput, setLocationInput] = useState("");
   const [businesses, setBusinesses] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,7 +52,14 @@ export default function UserView() {
         return;
       }
 
-      setBusinesses(nearbyData.locations || []);
+      // Filter out businesses with zero available total quantity or no available items
+      const availableBusinesses = (nearbyData.locations || []).filter(
+        (business: Location) =>
+          business.available_total_quantity > 0 &&
+          business.available_item_count > 0,
+      );
+
+      setBusinesses(availableBusinesses);
     } catch (err) {
       console.error("Search error:", err);
       setError("An error occurred while searching. Please try again.");
@@ -256,6 +265,9 @@ export default function UserView() {
                     userLocation={userLocation}
                     businesses={businesses}
                     apiKey={mapsApiKey}
+                    onReserveClick={(locationId) =>
+                      router.push(`/user/reserve/${locationId}`)
+                    }
                   />
                   <p className="text-sm text-gray-500 mt-2 text-center">
                     Click on markers to see business details •{" "}
@@ -294,7 +306,7 @@ export default function UserView() {
                       </span>
                     </div>
 
-                    <div className="text-gray-600 mb-2">
+                    <div className="text-gray-600 mb-4">
                       <h5 className="font-medium">{business.location_name}</h5>
                       <p className="text-sm">
                         {business.address_line1}, {business.city}
@@ -302,7 +314,7 @@ export default function UserView() {
                       </p>
                     </div>
 
-                    <div className="flex gap-4 text-sm">
+                    <div className="flex gap-4 text-sm mb-4">
                       <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
                         {business.available_item_count} items available
                       </span>
@@ -312,10 +324,25 @@ export default function UserView() {
                     </div>
 
                     {business.pickup_point_name && (
-                      <p className="text-sm text-gray-500 mt-2">
+                      <p className="text-sm text-gray-500 mb-4">
                         Pickup point: {business.pickup_point_name}
                       </p>
                     )}
+
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          router.push(`/user/reserve/${business.location_id}`)
+                        }
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                        disabled={business.available_item_count === 0}
+                      >
+                        {business.available_item_count > 0
+                          ? "Reserve Items"
+                          : "No Items Available"}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

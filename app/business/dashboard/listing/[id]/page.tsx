@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+
 import { useState } from "react";
 
 import Footer from "@/components/footer";
@@ -133,7 +135,7 @@ export default function LocationView() {
             )}
           </div>
           {/* Food Items List */}
-          <div className="border-t border-gray-200 pt-4">
+          <div className="border-t border-gray-200 pt-4 mb-8">
             {foodItems.length === 0 ? (
               <p className="text-gray-500 text-center py-4">
                 No food items added yet.
@@ -171,6 +173,16 @@ export default function LocationView() {
                 ))}
               </ul>
             )}
+          </div>
+
+          {/* Back to Dashboard Button */}
+          <div className="text-center">
+            <Link
+              href="/business/dashboard"
+              className="inline-block bg-gray-200 text-gray-800 px-6 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
+            >
+              ← Back to Dashboard
+            </Link>
           </div>
         </div>
       </div>

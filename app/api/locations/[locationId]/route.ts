@@ -21,14 +21,11 @@ export async function GET(
 
     // Get location details
     const { data: locationData, error: locationError } = await supabase
-      .from("locations")
+      .from("business_locations")
       .select(`
         id,
         name,
-        address_line1,
-        city,
-        region,
-        postal_code,
+        address,
         business_id
       `)
       .eq("id", locationId)
@@ -68,15 +65,7 @@ export async function GET(
       locationId: locationData.id,
       locationName: locationData.name,
       businessName: businessData?.name || "Unknown Business",
-      address: `${locationData.address_line1}, ${locationData.city}${
-        locationData.postal_code ? `, ${locationData.postal_code}` : ""
-      }`,
-      fullAddress: {
-        addressLine1: locationData.address_line1,
-        city: locationData.city,
-        region: locationData.region,
-        postalCode: locationData.postal_code,
-      },
+      address: locationData.address,
     };
 
     return NextResponse.json({

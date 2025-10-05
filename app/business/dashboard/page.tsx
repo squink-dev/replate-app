@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 interface Location {
   id: number;
@@ -21,12 +22,15 @@ export default function BusinessDashboard() {
   const [formData, setFormData] = useState({ name: "", address: "" });
   const [showForm, setShowForm] = useState(false);
 
+  const { profile, isLoading, signOut } = useAuth();
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAdd = () => {
+    console.log(profile);
     if (!formData.name.trim() || !formData.address.trim()) {
       alert("Please fill out both fields.");
       return;
@@ -53,7 +57,13 @@ export default function BusinessDashboard() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-800">
-                Hello, <span className="text-green-600">Temba</span> 👋
+                Hello,{" "}
+                <span className="text-green-600">
+                  {profile?.kind === "business"
+                    ? profile.businessName
+                    : "Business"}
+                </span>{" "}
+                👋
               </h1>
               <p className="text-gray-500 mt-2">
                 Add or manage your business locations to list available food for

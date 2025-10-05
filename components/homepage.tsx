@@ -22,8 +22,7 @@ export default function HomePage() {
           Welcome to <span className="text-green-600">Replate</span>
         </h1>
         <p className="text-lg md:text-xl text-gray-600 max-w-2xl mb-8">
-          Connecting businesses with surplus food to people in need — helping
-          communities reduce waste and fight hunger.
+          Connecting businesses with surplus food to people in need
         </p>
 
         <div className="flex flex-col md:flex-row gap-4">

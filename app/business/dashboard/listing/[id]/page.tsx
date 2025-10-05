@@ -48,6 +48,7 @@ export default function LocationView() {
   const [foodItems, setFoodItems] = useState<FoodItemWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     description: "",
@@ -234,7 +235,7 @@ export default function LocationView() {
     if (!confirm("Delete this item?")) return;
 
     try {
-      setIsSubmitting(true);
+      setDeletingId(itemId);
       const response = await fetch(
         `/api/locations/${id}/food-items?id=${itemId}`,
         {
@@ -249,11 +250,12 @@ export default function LocationView() {
       }
 
       await fetchData();
+      alert("Food item deleted successfully!");
     } catch (error) {
       console.error("Error deleting food item:", error);
       alert("Failed to delete food item. It may have active reservations.");
     } finally {
-      setIsSubmitting(false);
+      setDeletingId(null);
     }
   };
 
@@ -450,18 +452,18 @@ export default function LocationView() {
                           <button
                             type="button"
                             onClick={() => handleEdit(item)}
-                            disabled={isSubmitting}
-                            className="text-blue-600 hover:underline text-sm disabled:opacity-50"
+                            disabled={isSubmitting || deletingId === item.id}
+                            className="text-blue-600 hover:underline text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Edit
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(item.id)}
-                            disabled={isSubmitting}
-                            className="text-red-600 hover:underline text-sm disabled:opacity-50"
+                            disabled={isSubmitting || deletingId !== null}
+                            className="text-red-600 hover:underline text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Delete
+                            {deletingId === item.id ? "Deleting..." : "Delete"}
                           </button>
                         </div>
                       </div>

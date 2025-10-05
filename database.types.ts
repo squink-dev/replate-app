@@ -910,6 +910,19 @@ export type Database = {
         Args: { "": unknown };
         Returns: Json;
       };
+      list_business_locations_by_distance: {
+        Args: { user_lat: number; user_lng: number };
+        Returns: {
+          address_line1: string;
+          city: string;
+          country: string;
+          distance_km: number;
+          id: string;
+          latitude: number;
+          longitude: number;
+          name: string;
+        }[];
+      };
       longtransactionsenabled: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;

@@ -33,7 +33,9 @@ export async function GET(request: Request) {
               .eq("owner_id", user.id)
               .limit(1);
             if (!businesses || businesses.length === 0) {
-              next = "/bsignup";
+              next = "/business/signup";
+            } else {
+              next = "/business/dashboard";
             }
           } else if (kind === "user") {
             const { data: users } = await supabase
@@ -42,7 +44,9 @@ export async function GET(request: Request) {
               .eq("user_id", user.id)
               .limit(1);
             if (!users || users.length === 0) {
-              next = "/usignup";
+              next = "/user/signup";
+            } else {
+              next = "/user/view";
             }
           }
         }

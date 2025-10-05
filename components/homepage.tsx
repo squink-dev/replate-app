@@ -19,7 +19,7 @@ export default function HomePage() {
             asChild
             className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-lg shadow-md"
           >
-            <Link href="/usignup">User Signup</Link>
+            <Link href="/auth/login?kind=user">User Login</Link>
           </Button>
 
           <Button
@@ -27,7 +27,7 @@ export default function HomePage() {
             variant="outline"
             className="border-2 border-green-600 text-green-600 hover:bg-green-50 px-6 py-3 rounded-lg text-lg"
           >
-            <Link href="/bsignup">Business Signup</Link>
+            <Link href="/auth/login?kind=business">Business Login</Link>
           </Button>
 
           <Button
@@ -35,7 +35,7 @@ export default function HomePage() {
             variant="outline"
             className="border-2 border-green-600 text-green-600 hover:bg-green-50 px-6 py-3 rounded-lg text-lg"
           >
-            <Link href="/bdashboard">Business Dashboard Temp</Link>
+            <Link href="/business/dashboard">Business Dashboard Temp</Link>
           </Button>
 
           <Button
@@ -43,7 +43,7 @@ export default function HomePage() {
             variant="ghost"
             className="text-gray-700 hover:text-green-600 px-6 py-3 text-lg"
           >
-            <Link href="/uview">View Available Food →</Link>
+            <Link href="/user/view">View Available Food →</Link>
           </Button>
         </div>
       </header>

@@ -188,19 +188,15 @@ export default function UserView() {
           </div>
 
           {geoLoading && (
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <p className="text-green-600 text-center">
-                Getting your current location...
-              </p>
-            </div>
+            <p className="text-green-600 text-center">
+              Getting your current location...
+            </p>
           )}
 
           {userLocation && !geoLoading && (
-            <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-              <p className="text-green-600 text-sm text-center">
-                Using your current location
-              </p>
-            </div>
+            <p className="text-green-600 text-sm text-center">
+              Using your current location
+            </p>
           )}
 
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">

@@ -238,7 +238,7 @@ export default function BusinessDashboard() {
                 onChange={(e) =>
                   setFormData((p) => ({ ...p, name: e.target.value }))
                 }
-                placeholder="Business location (e.g., Downtown Cafe)"
+                placeholder="Branch name (e.g., Downtown Cafe)"
                 className="border border-gray-300 rounded-lg px-4 py-2 flex-1"
               />
               <input

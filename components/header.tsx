@@ -43,6 +43,7 @@ export default function Header() {
             alt="Logo"
             width={64}
             height={64}
+            className="hidden md:block"
           />
           <Link href="/" className="text-2xl font-extrabold text-green-600">
             Replate

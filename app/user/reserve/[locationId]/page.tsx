@@ -47,7 +47,7 @@ export default function UserReservePage({
   params: Promise<{ locationId: string }>;
 }) {
   const router = useRouter();
-  const { profile, isLoading: authLoading } = useAuth();
+  const { profile } = useAuth();
   const [locationId, setLocationId] = useState<string>("");
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);

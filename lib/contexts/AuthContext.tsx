@@ -40,25 +40,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const PROFILE_KIND_KEY = "profile_kind";
-const PROFILE_KIND_COOKIE = "profile_kind";
-
-// Helper function to set profile kind in both localStorage and cookie
-const setProfileKind = (kind: "user" | "business") => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(PROFILE_KIND_KEY, kind);
-    // Set cookie for middleware access
-    document.cookie = `${PROFILE_KIND_COOKIE}=${kind}; path=/; max-age=31536000; SameSite=Lax`;
-  }
-};
-
-// Helper function to remove profile kind
-const removeProfileKind = () => {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem(PROFILE_KIND_KEY);
-    // Remove cookie
-    document.cookie = `${PROFILE_KIND_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
-  }
-};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<AuthProfile>(null);
@@ -66,6 +47,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   useEffect(() => {
+    // Safety timeout - if loading takes more than 10 seconds, something is wrong
+    const loadingTimeout = setTimeout(() => {
+      if (isLoading) {
+        console.error(
+          "[AuthContext] Loading timeout - forcing isLoading to false",
+        );
+        setIsLoading(false);
+      }
+    }, 10000);
+
     const fetchProfile = async (
       user: User | null,
       preferredKind?: "user" | "business",
@@ -256,14 +247,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("[AuthContext] Auth state changed:", {
+        event,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+      });
+
+      // Only fetch profile if we're not already in a loading state from initAuth
+      // This prevents race conditions where both initAuth and onAuthStateChange
+      // try to fetch the profile simultaneously
       await fetchProfile(session?.user || null);
     });
 
     return () => {
       subscription.unsubscribe();
+      clearTimeout(loadingTimeout);
     };
-  }, [supabase]);
+  }, [supabase, isLoading]);
 
   const refreshProfile = async () => {
     setIsLoading(true);

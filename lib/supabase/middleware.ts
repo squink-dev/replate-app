@@ -90,45 +90,20 @@ export async function updateSession(request: NextRequest) {
   if (user) {
     const pathname = request.nextUrl.pathname;
 
-    // Get the active profile kind from cookie
-    const profileKindCookie = request.cookies.get("profile_kind")?.value as
-      | "user"
-      | "business"
-      | undefined;
-
     // Check if user is trying to access business routes
     if (pathname.startsWith("/business")) {
-      // Check both profiles
-      const [{ data: businessProfile }, { data: userProfile }] =
-        await Promise.all([
-          supabase
-            .from("business_profiles")
-            .select("id")
-            .eq("owner_id", user.sub)
-            .single(),
-          supabase
-            .from("user_profiles")
-            .select("user_id")
-            .eq("user_id", user.sub)
-            .single(),
-        ]);
+      // Verify user has a business profile
+      const { data: businessProfile } = await supabase
+        .from("business_profiles")
+        .select("id")
+        .eq("owner_id", user.sub)
+        .single();
 
       if (!businessProfile) {
         // User doesn't have a business profile, redirect to home
         const url = request.nextUrl.clone();
         url.pathname = "/";
         url.searchParams.set("error", "business_access_denied");
-        return NextResponse.redirect(url);
-      }
-
-      // If user has both profiles but is logged in as user, deny access
-      if (businessProfile && userProfile && profileKindCookie === "user") {
-        const url = request.nextUrl.clone();
-        url.pathname = "/";
-        url.searchParams.set(
-          "error",
-          "business_access_denied_switch_to_business",
-        );
         return NextResponse.redirect(url);
       }
     }
@@ -139,69 +114,20 @@ export async function updateSession(request: NextRequest) {
       !pathname.startsWith("/user/view") &&
       !pathname.startsWith("/user/signup")
     ) {
-      // Get the active profile kind from cookie
-      const profileKindCookie = request.cookies.get("profile_kind")?.value as
-        | "user"
-        | "business"
-        | undefined;
+      // Verify user has a user profile
+      const { data: userProfile } = await supabase
+        .from("user_profiles")
+        .select("user_id")
+        .eq("user_id", user.sub)
+        .single();
 
-      // Check both profiles to determine access
-      const [{ data: userProfile }, { data: businessProfile }] =
-        await Promise.all([
-          supabase
-            .from("user_profiles")
-            .select("user_id")
-            .eq("user_id", user.sub)
-            .single(),
-          supabase
-            .from("business_profiles")
-            .select("id")
-            .eq("owner_id", user.sub)
-            .single(),
-        ]);
-
-      console.log("[Middleware] /user route check:", {
-        pathname,
-        hasUserProfile: !!userProfile,
-        hasBusinessProfile: !!businessProfile,
-        activeProfileKind: profileKindCookie,
-      });
-
-      // If user has a business profile but no user profile, deny access
-      if (businessProfile && !userProfile) {
-        console.log(
-          "[Middleware] Denying access: has business but no user profile",
-        );
-        const url = request.nextUrl.clone();
-        url.pathname = "/";
-        url.searchParams.set("error", "user_access_denied");
-        return NextResponse.redirect(url);
-      }
-
-      // If user has neither profile, deny access
       if (!userProfile) {
-        console.log("[Middleware] Denying access: no user profile");
+        // User doesn't have a user profile, redirect to home
         const url = request.nextUrl.clone();
         url.pathname = "/";
         url.searchParams.set("error", "user_access_denied");
         return NextResponse.redirect(url);
       }
-
-      // If user has both profiles, check which one is active via cookie
-      if (userProfile && businessProfile) {
-        // If they're logged in as business (cookie says "business"), deny access to user routes
-        if (profileKindCookie === "business") {
-          console.log(
-            "[Middleware] Denying access: user has both profiles but is logged in as business",
-          );
-          const url = request.nextUrl.clone();
-          url.pathname = "/";
-          url.searchParams.set("error", "user_access_denied_switch_to_user");
-          return NextResponse.redirect(url);
-        }
-      }
-
-      console.log("[Middleware] Allowing access to /user route");
     }
   }
 

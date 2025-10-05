@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import Footer from "@/components/footer";
 import { GoogleMap } from "@/components/GoogleMap";
@@ -23,6 +24,7 @@ interface Location {
 }
 
 export default function UserView() {
+  const router = useRouter();
   const [locationInput, setLocationInput] = useState("");
   const [businesses, setBusinesses] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,7 +52,14 @@ export default function UserView() {
         return;
       }
 
-      setBusinesses(nearbyData.locations || []);
+      // Filter out businesses with zero available total quantity or no available items
+      const availableBusinesses = (nearbyData.locations || []).filter(
+        (business: Location) =>
+          business.available_total_quantity > 0 &&
+          business.available_item_count > 0,
+      );
+
+      setBusinesses(availableBusinesses);
     } catch (err) {
       console.error("Search error:", err);
       setError("An error occurred while searching. Please try again.");
@@ -165,7 +174,7 @@ export default function UserView() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4 max-w-6xl">
+      <div className="container mx-auto p-4 max-w-2xl">
         <h1 className="text-3xl font-bold mb-6 text-center">
           Find Food Near You
         </h1>
@@ -183,14 +192,6 @@ export default function UserView() {
             <p className="text-green-600 text-sm">
               ✅ Using your current location
             </p>
-            <button
-              type="button"
-              onClick={getCurrentLocation}
-              disabled={loading || geoLoading}
-              className="text-green-600 hover:text-green-800 text-sm underline mt-1 disabled:text-gray-400"
-            >
-              Refresh location
-            </button>
           </div>
         )}
 
@@ -209,7 +210,7 @@ export default function UserView() {
               type="button"
               onClick={handleSearch}
               disabled={loading}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? "Searching..." : "Search"}
             </button>
@@ -227,35 +228,13 @@ export default function UserView() {
               {/* Google Maps Integration */}
               {mapsApiKey && userLocation && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-medium text-gray-700 mb-3">
-                    🗺️ Map View
-                  </h3>
-                  <div className="border border-orange-200 bg-orange-50 p-4 rounded-lg mb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-orange-600">⚠️</span>
-                      <div>
-                        <p className="text-orange-800 font-medium text-sm">
-                          Maps JavaScript API Not Enabled
-                        </p>
-                        <p className="text-orange-700 text-xs mt-1">
-                          Enable "Maps JavaScript API" in Google Cloud Console
-                          to see the interactive map
-                        </p>
-                        <a
-                          href="https://console.cloud.google.com/apis/library/maps-backend.googleapis.com"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-orange-600 text-xs underline hover:text-orange-800 mt-1 inline-block"
-                        >
-                          → Enable Maps JavaScript API
-                        </a>
-                      </div>
-                    </div>
-                  </div>
                   <GoogleMap
                     userLocation={userLocation}
                     businesses={businesses}
                     apiKey={mapsApiKey}
+                    onReserveClick={(locationId) =>
+                      router.push(`/user/reserve/${locationId}`)
+                    }
                   />
                   <p className="text-sm text-gray-500 mt-2 text-center">
                     Click on markers to see business details •{" "}
@@ -294,7 +273,7 @@ export default function UserView() {
                       </span>
                     </div>
 
-                    <div className="text-gray-600 mb-2">
+                    <div className="text-gray-600 mb-4">
                       <h5 className="font-medium">{business.location_name}</h5>
                       <p className="text-sm">
                         {business.address_line1}, {business.city}
@@ -302,7 +281,7 @@ export default function UserView() {
                       </p>
                     </div>
 
-                    <div className="flex gap-4 text-sm">
+                    <div className="flex gap-4 text-sm mb-4">
                       <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
                         {business.available_item_count} items available
                       </span>
@@ -312,10 +291,25 @@ export default function UserView() {
                     </div>
 
                     {business.pickup_point_name && (
-                      <p className="text-sm text-gray-500 mt-2">
+                      <p className="text-sm text-gray-500 mb-4">
                         Pickup point: {business.pickup_point_name}
                       </p>
                     )}
+
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          router.push(`/user/reserve/${business.location_id}`)
+                        }
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer"
+                        disabled={business.available_item_count === 0}
+                      >
+                        {business.available_item_count > 0
+                          ? "Reserve Items"
+                          : "No Items Available"}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

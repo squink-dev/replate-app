@@ -24,12 +24,14 @@ interface GoogleMapProps {
   userLocation: { lat: number; lon: number } | null;
   businesses: Location[];
   apiKey: string;
+  onReserveClick?: (locationId: string) => void;
 }
 
 const MapComponent: React.FC<{
   userLocation: { lat: number; lon: number } | null;
   businesses: Location[];
-}> = ({ userLocation, businesses }) => {
+  onReserveClick?: (locationId: string) => void;
+}> = ({ userLocation, businesses, onReserveClick }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map>();
   const markersRef = useRef<google.maps.Marker[]>([]);
@@ -143,14 +145,50 @@ const MapComponent: React.FC<{
                             Qty: ${business.available_total_quantity}
                           </span>
                         </div>
-                        <p style="margin: 0; font-size: 11px; color: #9ca3af;">
+                        <p style="margin: 0 0 12px 0; font-size: 11px; color: #9ca3af;">
                           ${business.distance_km.toFixed(1)} km away
                           ${business.pickup_point_name ? ` • ${business.pickup_point_name}` : ""}
                         </p>
+                        ${
+                          business.available_item_count > 0
+                            ? `
+                          <button 
+                            id="reserve-btn-${business.location_id}"
+                            style="background: #16a34a; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; width: 100%;"
+                            onmouseover="this.style.background='#15803d'"
+                            onmouseout="this.style.background='#16a34a'"
+                          >
+                            Reserve Items
+                          </button>
+                        `
+                            : `
+                          <button 
+                            style="background: #9ca3af; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: not-allowed; width: 100%;"
+                            disabled
+                          >
+                            No Items Available
+                          </button>
+                        `
+                        }
                       </div>
                     `;
                     infoWindow.setContent(content);
                     infoWindow.open(map, marker);
+
+                    // Add click listener to the reserve button
+                    if (business.available_item_count > 0 && onReserveClick) {
+                      setTimeout(() => {
+                        const reserveBtn = document.getElementById(
+                          `reserve-btn-${business.location_id}`,
+                        );
+                        if (reserveBtn) {
+                          reserveBtn.addEventListener("click", () => {
+                            onReserveClick(business.location_id);
+                            infoWindow.close();
+                          });
+                        }
+                      }, 100);
+                    }
                   }
                 });
 
@@ -172,7 +210,7 @@ const MapComponent: React.FC<{
         markersRef.current = validMarkers;
       });
     }
-  }, [map, businesses, infoWindow]);
+  }, [map, businesses, infoWindow, onReserveClick]);
 
   // Fit map to show all markers
   // biome-ignore lint/correctness/useExhaustiveDependencies: businesses.length dependency is needed to re-fit bounds
@@ -264,10 +302,15 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
   userLocation,
   businesses,
   apiKey,
+  onReserveClick,
 }) => {
   return (
     <Wrapper apiKey={apiKey} render={render}>
-      <MapComponent userLocation={userLocation} businesses={businesses} />
+      <MapComponent
+        userLocation={userLocation}
+        businesses={businesses}
+        onReserveClick={onReserveClick}
+      />
     </Wrapper>
   );
 };

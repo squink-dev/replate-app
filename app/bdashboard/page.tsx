@@ -1,11 +1,11 @@
 import Footer from "@/components/footer";
 import Header from "@/components/header";
-import BusinessSignUp from "@/components/businesssignup";
-export default function SignUpB() {
+import BusinessDashBoard from "@/components/businessdashboard";
+export default function DashBoardB() {
   return (
     <>
       <Header />
-      <BusinessSignUp />
+      <BusinessDashBoard />
       <Footer />
     </>
   );

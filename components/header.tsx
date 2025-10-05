@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/lib/contexts/AuthContext";
@@ -37,7 +37,12 @@ export default function Header() {
     <header className="w-full border-b bg-white shadow-sm">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <Image src="/images/logo_icon.png.jpg" alt="Logo" width={64} height={64} />
+          <Image
+            src="/images/logo_icon.png.jpg"
+            alt="Logo"
+            width={64}
+            height={64}
+          />
           <Link href="/" className="text-2xl font-extrabold text-green-600">
             Replate
           </Link>

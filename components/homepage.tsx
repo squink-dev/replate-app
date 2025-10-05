@@ -1,8 +1,20 @@
 "use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 export default function HomePage() {
+  const { profile, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-600">
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col flex-1 bg-gray-50">
       <header className="flex flex-col items-center justify-center flex-1 text-center px-6 py-12">
@@ -15,20 +27,33 @@ export default function HomePage() {
         </p>
 
         <div className="flex flex-col md:flex-row gap-4">
-          <Button
-            asChild
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-lg shadow-md"
-          >
-            <Link href="/auth/login?kind=user">User Login</Link>
-          </Button>
+          {!profile && (
+            <>
+              <Button
+                asChild
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-lg shadow-md"
+              >
+                <Link href="/auth/login?kind=user">User Login</Link>
+              </Button>
 
-          <Button
-            asChild
-            variant="outline"
-            className="border-2 border-green-600 text-green-600 hover:bg-green-50 px-6 py-3 rounded-lg text-lg"
-          >
-            <Link href="/auth/login?kind=business">Business Login</Link>
-          </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="border-2 border-green-600 text-green-600 hover:bg-green-50 px-6 py-3 rounded-lg text-lg"
+              >
+                <Link href="/auth/login?kind=business">Business Login</Link>
+              </Button>
+            </>
+          )}
+
+          {profile?.kind === "business" && (
+            <Button
+              asChild
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-lg shadow-md"
+            >
+              <Link href="/business/dashboard">Go to Dashboard</Link>
+            </Button>
+          )}
 
           <Button
             asChild

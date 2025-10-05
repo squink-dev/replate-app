@@ -54,3 +54,40 @@ body {
   color: hsl(var(--foreground));
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
+
+/* Global cursor pointer for interactive elements */
+button,
+[role="button"],
+[role="combobox"],
+[role="menuitem"],
+[role="option"],
+[role="switch"],
+[role="tab"],
+select,
+input[type="checkbox"],
+input[type="radio"],
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+label:has(input[type="checkbox"]),
+label:has(input[type="radio"]),
+a,
+summary {
+  cursor: pointer;
+}
+
+/* Radix UI specific selectors */
+[data-radix-collection-item],
+[data-state],
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Disabled state should show not-allowed cursor */
+button:disabled,
+[role="button"]:disabled,
+[aria-disabled="true"],
+.disabled,
+:disabled {
+  cursor: not-allowed;
+}

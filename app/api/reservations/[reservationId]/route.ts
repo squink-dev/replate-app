@@ -95,3 +95,103 @@ export async function DELETE(
     );
   }
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ reservationId: string }> },
+) {
+  try {
+    const supabase = await createClient();
+
+    // Get the authenticated user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Unauthorized - Please log in" },
+        { status: 401 },
+      );
+    }
+
+    const { reservationId } = await params;
+    const body = await request.json();
+    const { status } = body;
+
+    if (!reservationId) {
+      return NextResponse.json(
+        { error: "Reservation ID is required" },
+        { status: 400 },
+      );
+    }
+
+    if (!status || !["picked_up"].includes(status)) {
+      return NextResponse.json(
+        { error: "Valid status is required (picked_up)" },
+        { status: 400 },
+      );
+    }
+
+    // First, verify the reservation belongs to this user
+    const { data: reservation, error: fetchError } = await supabase
+      .from("reservations")
+      .select("id, user_id, status")
+      .eq("id", reservationId)
+      .single();
+
+    if (fetchError || !reservation) {
+      return NextResponse.json(
+        { error: "Reservation not found" },
+        { status: 404 },
+      );
+    }
+
+    // Check if the reservation belongs to the current user
+    if (reservation.user_id !== user.id) {
+      return NextResponse.json(
+        { error: "You do not have permission to update this reservation" },
+        { status: 403 },
+      );
+    }
+
+    // Check if the reservation can be marked as picked up (only active reservations)
+    if (reservation.status !== "active") {
+      return NextResponse.json(
+        {
+          error: `Cannot mark a ${reservation.status} reservation as picked up. Only active reservations can be updated.`,
+        },
+        { status: 400 },
+      );
+    }
+
+    // Update the reservation status to picked_up
+    const { error: updateError } = await supabase
+      .from("reservations")
+      .update({ status: "picked_up" })
+      .eq("id", reservationId);
+
+    if (updateError) {
+      console.error("Error updating reservation:", updateError);
+      return NextResponse.json(
+        {
+          error: "Failed to update reservation",
+          details: updateError.message,
+        },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Reservation marked as picked up successfully",
+    });
+  } catch (error) {
+    console.error("Error updating reservation:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}

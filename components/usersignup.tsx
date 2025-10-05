@@ -312,19 +312,19 @@ export default function UserSignUp() {
 
             <div>
               <FormLabel>Dietary Restrictions (optional)</FormLabel>
-              <div className="flex flex-col gap-2 mt-3">
+              <div className="flex flex-wrap gap-2 mt-3">
                 {dietaryOptions.map((option) => (
                   <label
                     key={option.value}
-                    className="flex items-center gap-2 text-gray-700 text-sm"
+                    className="inline-flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-100 transition"
                   >
                     <input
                       type="checkbox"
                       checked={dietaryRestrictions.includes(option.value)}
                       onChange={() => handleToggleRestriction(option.value)}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="rounded"
                     />
-                    {option.label}
+                    <span className="text-sm">{option.label}</span>
                   </label>
                 ))}
               </div>

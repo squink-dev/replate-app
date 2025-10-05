@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <header className="flex flex-col items-center justify-center flex-1 text-center px-6">
+    <div className="flex flex-col flex-1 bg-gray-50">
+      <header className="flex flex-col items-center justify-center flex-1 text-center px-6 py-12">
         <h1 className="text-4xl md:text-6xl font-extrabold text-gray-800 mb-4">
           Welcome to <span className="text-green-600">Replate</span>
         </h1>

@@ -37,6 +37,7 @@ export default function UserReservationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [completingId, setCompletingId] = useState<string | null>(null);
 
   const fetchReservations = useCallback(async () => {
     try {
@@ -92,6 +93,44 @@ export default function UserReservationsPage() {
       );
     } finally {
       setCancelingId(null);
+    }
+  };
+
+  const handleCompleteReservation = async (reservationId: string) => {
+    if (!confirm("Confirm that you have received this food?")) {
+      return;
+    }
+
+    setCompletingId(reservationId);
+
+    try {
+      const response = await fetch(`/api/reservations/${reservationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "picked_up" }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(
+          data.error || "Failed to mark reservation as picked up",
+        );
+      }
+
+      // Refresh the reservations list
+      await fetchReservations();
+
+      // Show success message
+      alert("Thank you! Reservation marked as completed.");
+    } catch (err) {
+      console.error("Error completing reservation:", err);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Failed to complete reservation. Please try again.",
+      );
+    } finally {
+      setCompletingId(null);
     }
   };
 
@@ -162,7 +201,13 @@ export default function UserReservationsPage() {
   }
 
   const activeReservations = reservations.filter((r) => r.status === "active");
-  const pastReservations = reservations.filter((r) => r.status !== "active");
+  const pastReservations = reservations
+    .filter((r) => r.status !== "active")
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )
+    .slice(0, 5);
 
   return (
     <>
@@ -274,18 +319,38 @@ export default function UserReservationsPage() {
                               Expires: {formatDate(reservation.expires_at)}
                             </p>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleCancelReservation(reservation.id)
-                            }
-                            disabled={cancelingId === reservation.id}
-                            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
-                          >
-                            {cancelingId === reservation.id
-                              ? "Canceling..."
-                              : "Cancel Reservation"}
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleCompleteReservation(reservation.id)
+                              }
+                              disabled={
+                                completingId === reservation.id ||
+                                cancelingId === reservation.id
+                              }
+                              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                            >
+                              {completingId === reservation.id
+                                ? "Processing..."
+                                : "Received Food"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleCancelReservation(reservation.id)
+                              }
+                              disabled={
+                                cancelingId === reservation.id ||
+                                completingId === reservation.id
+                              }
+                              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                            >
+                              {cancelingId === reservation.id
+                                ? "Canceling..."
+                                : "Cancel"}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}

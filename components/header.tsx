@@ -35,11 +35,11 @@ export default function Header() {
   };
 
   return (
-    <header className="w-full border-b bg-white shadow-sm">
+    <header className="w-full border-b border-white/50 bg-white/60 backdrop-blur-md shadow-lg">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <Image
-            src="/images/logo_icon.png.jpg"
+            src="/images/logo_icon.png"
             alt="Logo"
             width={64}
             height={64}

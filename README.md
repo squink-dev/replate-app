@@ -1,6 +1,6 @@
 # Replate
 
-## Connecting surplus food to people who need it — simply and sustainably
+## Connecting surplus food to people who need it (simply and sustainably)
 
 Replate is a web platform that helps link businesses with surplus food and community members in need.  
 Instead of discarding leftover food or organizing waste collection, businesses can list surplus items that users can find and reserve nearby.

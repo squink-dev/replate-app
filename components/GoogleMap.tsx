@@ -139,10 +139,7 @@ const MapComponent: React.FC<{
                         </p>
                         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                           <span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
-                            ${business.available_item_count} items
-                          </span>
-                          <span style="background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
-                            Qty: ${business.available_total_quantity}
+                            ${business.available_item_count} food items available
                           </span>
                         </div>
                         <p style="margin: 0 0 12px 0; font-size: 11px; color: #9ca3af;">

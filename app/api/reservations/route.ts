@@ -1,6 +1,77 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+export async function GET() {
+  try {
+    const supabase = await createClient();
+
+    // Get the authenticated user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Unauthorized - Please log in" },
+        { status: 401 },
+      );
+    }
+
+    // Fetch user's reservations with all related data
+    const { data: reservations, error: reservationsError } = await supabase
+      .from("reservations")
+      .select(`
+        id,
+        created_at,
+        expires_at,
+        status,
+        pickup_point:pickup_points(
+          id,
+          name,
+          location:business_locations(
+            id,
+            name,
+            address_line1,
+            city,
+            postal_code,
+            business:business_profiles(
+              business_name
+            )
+          )
+        ),
+        reservation_items(
+          quantity,
+          food_item:food_items(
+            description,
+            unit_label
+          )
+        )
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (reservationsError) {
+      console.error("Error fetching reservations:", reservationsError);
+      return NextResponse.json(
+        { error: "Failed to fetch reservations" },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      reservations: reservations || [],
+    });
+  } catch (error) {
+    console.error("Error fetching reservations:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();

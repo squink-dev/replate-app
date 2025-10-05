@@ -254,10 +254,6 @@ export default function UserView() {
             </div>
 
             <div>
-              <h3 className="text-lg font-medium text-gray-700 mb-4">
-                📋 List View
-              </h3>
-
               <div className="grid gap-4">
                 {businesses.map((business) => (
                   <div
@@ -283,10 +279,7 @@ export default function UserView() {
 
                     <div className="flex gap-4 text-sm mb-4">
                       <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                        {business.available_item_count} items available
-                      </span>
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        Total quantity: {business.available_total_quantity}
+                        {business.available_item_count} food items available
                       </span>
                     </div>
 

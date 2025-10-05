@@ -2,6 +2,8 @@
 
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import Footer from "@/components/footer";
+import Header from "@/components/header";
 
 interface FoodItem {
   id: number;
@@ -65,96 +67,100 @@ export default function ListingView() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col px-6 py-12">
-      <div className="max-w-3xl mx-auto w-full bg-white shadow-lg rounded-2xl border border-gray-200 p-8">
-        {/* Header */}
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          {locationName} (ID: {id})
-        </h1>
-        <p className="text-gray-500 mb-6">
-          Manage your food listings for this location. Add, edit, or delete
-          available food items.
-        </p>
+    <>
+      <Header />
+      <div className="bg-gray-50 flex flex-col px-6 py-12">
+        <div className="max-w-3xl mx-auto w-full bg-white shadow-lg rounded-2xl border border-gray-200 p-8">
+          {/* Header */}
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            {locationName} (ID: {id})
+          </h1>
+          <p className="text-gray-500 mb-6">
+            Manage your food listings for this location. Add, edit, or delete
+            available food items.
+          </p>
 
-        {/* Add/Edit Form */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Food item name"
-            className="border border-gray-300 rounded-lg px-4 py-2 flex-1"
-          />
-          <input
-            type="text"
-            name="amount"
-            value={formData.amount}
-            onChange={handleChange}
-            placeholder="Amount (e.g., 5 boxes, 10 kg)"
-            className="border border-gray-300 rounded-lg px-4 py-2 flex-1"
-          />
+          {/* Add/Edit Form */}
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Food item name"
+              className="border border-gray-300 rounded-lg px-4 py-2 flex-1"
+            />
+            <input
+              type="text"
+              name="amount"
+              value={formData.amount}
+              onChange={handleChange}
+              placeholder="Amount (e.g., 5 boxes, 10 kg)"
+              className="border border-gray-300 rounded-lg px-4 py-2 flex-1"
+            />
 
-          {editingId ? (
-            <button
-              type="button"
-              onClick={handleSave}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-              Save
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleAdd}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-            >
-              Add
-            </button>
-          )}
-        </div>
+            {editingId ? (
+              <button
+                type="button"
+                onClick={handleSave}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+              >
+                Save
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleAdd}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+              >
+                Add
+              </button>
+            )}
+          </div>
 
-        {/* Food Items List */}
-        <div className="border-t border-gray-200 pt-4">
-          {foodItems.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">
-              No food items added yet.
-            </p>
-          ) : (
-            <ul className="space-y-3">
-              {foodItems.map((item, index) => (
-                <li
-                  key={item.id}
-                  className="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition"
-                >
-                  <div>
-                    <h3 className="font-semibold text-gray-800">
-                      {index + 1}. {item.name}
-                    </h3>
-                    <p className="text-gray-500 text-sm">{item.amount}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(item)}
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(item.id)}
-                      className="text-red-600 hover:underline text-sm"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+          {/* Food Items List */}
+          <div className="border-t border-gray-200 pt-4">
+            {foodItems.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">
+                No food items added yet.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {foodItems.map((item, index) => (
+                  <li
+                    key={item.id}
+                    className="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition"
+                  >
+                    <div>
+                      <h3 className="font-semibold text-gray-800">
+                        {index + 1}. {item.name}
+                      </h3>
+                      <p className="text-gray-500 text-sm">{item.amount}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(item)}
+                        className="text-green-600 hover:underline text-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(item.id)}
+                        className="text-red-600 hover:underline text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 }

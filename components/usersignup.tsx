@@ -1,6 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 export default function UserSignUp() {
   const [step, setStep] = useState(1);
@@ -12,11 +19,11 @@ export default function UserSignUp() {
 
   const [extraData, setExtraData] = useState({
     age: "",
-    profession: [] as string[],
+    profession: "",
     dietaryRestrictions: [] as string[],
   });
 
-  const professionOptions = ["Unemployed", "Student", "Employed"];
+  const professionOptions = ["Unemployed", "Part-Time", "Full-Time"];
 
   const dietaryOptions = [
     "Vegan",
@@ -54,28 +61,7 @@ export default function UserSignUp() {
   };
 
   const handleProfessionSelect = (profession: string) => {
-    setExtraData((prev) => {
-      let newProfessions = [...prev.profession];
-
-      if (newProfessions.includes(profession)) {
-        newProfessions = newProfessions.filter((p) => p !== profession);
-      } else {
-        // rules: Student can mix, Employed/Unemployed are exclusive
-        if (profession === "Employed") {
-          newProfessions = newProfessions
-            .filter((p) => p !== "Unemployed")
-            .concat("Employed");
-        } else if (profession === "Unemployed") {
-          newProfessions = newProfessions
-            .filter((p) => p !== "Employed")
-            .concat("Unemployed");
-        } else if (profession === "Student") {
-          newProfessions.push("Student");
-        }
-      }
-
-      return { ...prev, profession: newProfessions };
-    });
+    setExtraData((prev) => ({ ...prev, profession }));
   };
 
   const validateEmail = (email: string) => {
@@ -110,8 +96,8 @@ export default function UserSignUp() {
       alert("Please enter a valid age.");
       return false;
     }
-    if (extraData.profession.length === 0) {
-      alert("Please select at least one profession.");
+    if (!extraData.profession) {
+      alert("Please select a profession.");
       return false;
     }
     return true;
@@ -133,7 +119,7 @@ export default function UserSignUp() {
       if (!res.ok) throw new Error("Failed to submit");
       alert("User registered successfully!");
       setUserData({ name: "", email: "", password: "" });
-      setExtraData({ age: "", profession: [], dietaryRestrictions: [] });
+      setExtraData({ age: "", profession: "", dietaryRestrictions: [] });
       setStep(1);
     } catch (err) {
       alert("Something went wrong. Please try again.");
@@ -248,22 +234,21 @@ export default function UserSignUp() {
               >
                 Profession
               </label>
-              <div id="profession" className="flex flex-col gap-2">
-                {professionOptions.map((option) => (
-                  <label
-                    key={option}
-                    className="flex items-center gap-2 text-gray-700 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={extraData.profession.includes(option)}
-                      onChange={() => handleProfessionSelect(option)}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                    />
-                    {option}
-                  </label>
-                ))}
-              </div>
+              <Select
+                value={extraData.profession}
+                onValueChange={handleProfessionSelect}
+              >
+                <SelectTrigger className="w-full" id="profession">
+                  <SelectValue placeholder="Select your profession" />
+                </SelectTrigger>
+                <SelectContent>
+                  {professionOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

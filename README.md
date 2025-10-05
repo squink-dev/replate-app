@@ -79,13 +79,11 @@ pnpm dev
 # or
 bun dev
 ```
-## Example .ENV file
-
-# Supabase Configuration
+# Example .ENV file
+## Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-instance.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-public-anon-key
-
-# Google Maps API
+##Google Maps API
 GOOGLE_MAPS_API_KEY=your-google-maps-api-key
 
 Additional Next.js boilerplate

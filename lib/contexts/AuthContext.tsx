@@ -1,6 +1,5 @@
 "use client";
 
-import type { User } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useState } from "react";
 import type { Database } from "@/database.types";
 import { createClient } from "@/lib/supabase/client";
@@ -47,28 +46,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   useEffect(() => {
-    // Safety timeout - if loading takes more than 10 seconds, something is wrong
-    const loadingTimeout = setTimeout(() => {
-      if (isLoading) {
-        console.error(
-          "[AuthContext] Loading timeout - forcing isLoading to false",
-        );
-        setIsLoading(false);
-      }
-    }, 10000);
+    let mounted = true;
 
-    const fetchProfile = async (
-      user: User | null,
-      preferredKind?: "user" | "business",
-    ) => {
-      if (!user) {
-        setProfile(null);
-        setIsLoading(false);
-        return;
-      }
-
+    const fetchProfile = async () => {
       try {
-        // Get the stored preference or use the provided one
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!mounted) return;
+
+        if (!user) {
+          setProfile(null);
+          setIsLoading(false);
+          return;
+        }
+
+        // Get stored preference
         const storedKind =
           typeof window !== "undefined"
             ? (localStorage.getItem(PROFILE_KIND_KEY) as
@@ -76,27 +70,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 | "business"
                 | null)
             : null;
-        const kind = preferredKind || storedKind;
 
-        console.log("[AuthContext] fetchProfile called", {
-          preferredKind,
-          storedKind,
-          kind,
-          userId: user.id,
-        });
-
-        // If we have a preferred kind, try to fetch that profile first
-        if (kind === "user") {
-          const { data: userProfile, error: userError } = await supabase
+        // Try preferred profile type first
+        if (storedKind === "user") {
+          const { data: userProfile } = await supabase
             .from("user_profiles")
             .select("*")
             .eq("user_id", user.id)
             .single();
 
-          if (!userError && userProfile) {
-            if (typeof window !== "undefined") {
-              localStorage.setItem(PROFILE_KIND_KEY, "user");
-            }
+          if (userProfile && mounted) {
             setProfile({
               kind: "user",
               email: user.email || "",
@@ -112,22 +95,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsLoading(false);
             return;
           }
-        } else if (kind === "business") {
-          const { data: businessProfile, error: businessError } = await supabase
+        } else if (storedKind === "business") {
+          const { data: businessProfile } = await supabase
             .from("business_profiles")
             .select("*")
             .eq("owner_id", user.id)
             .single();
 
-          console.log("[AuthContext] Business profile query result", {
-            businessProfile,
-            businessError,
-          });
-
-          if (!businessError && businessProfile) {
-            if (typeof window !== "undefined") {
-              localStorage.setItem(PROFILE_KIND_KEY, "business");
-            }
+          if (businessProfile && mounted) {
             setProfile({
               kind: "business",
               email: user.email || "",
@@ -142,22 +117,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // No preferred kind or preferred kind not found - check both profiles
-        console.log(
-          "[AuthContext] Falling back to check both profiles (kind was:",
-          kind,
-          ")",
-        );
-
-        const { data: userProfile, error: userError } = await supabase
+        // Fallback: check user profile first
+        const { data: userProfile } = await supabase
           .from("user_profiles")
           .select("*")
           .eq("user_id", user.id)
           .single();
 
-        if (!userError && userProfile) {
-          // Only update localStorage if there was no prior preference
-          if (typeof window !== "undefined" && !storedKind) {
+        if (userProfile && mounted) {
+          if (typeof window !== "undefined") {
             localStorage.setItem(PROFILE_KIND_KEY, "user");
           }
           setProfile({
@@ -176,16 +144,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Check for business profile
-        const { data: businessProfile, error: businessError } = await supabase
+        // Check business profile
+        const { data: businessProfile } = await supabase
           .from("business_profiles")
           .select("*")
           .eq("owner_id", user.id)
           .single();
 
-        if (!businessError && businessProfile) {
-          // Only update localStorage if there was no prior preference
-          if (typeof window !== "undefined" && !storedKind) {
+        if (businessProfile && mounted) {
+          if (typeof window !== "undefined") {
             localStorage.setItem(PROFILE_KIND_KEY, "business");
           }
           setProfile({
@@ -201,98 +168,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // User is authenticated but has no profile yet
-        setProfile(null);
-        setIsLoading(false);
+        // No profile found
+        if (mounted) {
+          setProfile(null);
+          setIsLoading(false);
+        }
       } catch (error) {
-        console.error("Error fetching profile:", error);
-        setProfile(null);
-        setIsLoading(false);
+        console.error("[AuthContext] Error fetching profile:", error);
+        if (mounted) {
+          setProfile(null);
+          setIsLoading(false);
+        }
       }
     };
 
-    // Initial profile fetch
-    const initAuth = async () => {
-      // Check if there's a 'kind' parameter in the URL (from callback)
-      const params =
-        typeof window !== "undefined"
-          ? new URLSearchParams(window.location.search)
-          : null;
-      const kindFromUrl = params?.get("kind") as "user" | "business" | null;
+    fetchProfile();
 
-      console.log("[AuthContext] initAuth - URL params", {
-        url: typeof window !== "undefined" ? window.location.href : "SSR",
-        kindFromUrl,
-      });
-
-      // If kind is in URL, store it in localStorage
-      if (kindFromUrl && typeof window !== "undefined") {
-        localStorage.setItem(PROFILE_KIND_KEY, kindFromUrl);
-        console.log("[AuthContext] Stored kind from URL:", kindFromUrl);
-
-        // Clean up the URL to remove the kind parameter
-        const url = new URL(window.location.href);
-        url.searchParams.delete("kind");
-        window.history.replaceState({}, "", url);
-      }
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      await fetchProfile(user, kindFromUrl || undefined);
-    };
-
-    initAuth();
-
-    // Listen for auth state changes
+    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("[AuthContext] Auth state changed:", {
-        event,
-        hasUser: !!session?.user,
-        userId: session?.user?.id,
-      });
-
-      // Only fetch profile if we're not already in a loading state from initAuth
-      // This prevents race conditions where both initAuth and onAuthStateChange
-      // try to fetch the profile simultaneously
-      await fetchProfile(session?.user || null);
+    } = supabase.auth.onAuthStateChange(() => {
+      fetchProfile();
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
-      clearTimeout(loadingTimeout);
     };
-  }, [supabase, isLoading]);
-
+  }, [supabase]);
   const refreshProfile = async () => {
     setIsLoading(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setProfile(null);
-      setIsLoading(false);
-      return;
-    }
-
-    // Get stored preference
-    const storedKind =
-      typeof window !== "undefined"
-        ? (localStorage.getItem(PROFILE_KIND_KEY) as "user" | "business" | null)
-        : null;
-
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setProfile(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const storedKind =
+        typeof window !== "undefined"
+          ? (localStorage.getItem(PROFILE_KIND_KEY) as
+              | "user"
+              | "business"
+              | null)
+          : null;
+
+      // Try preferred profile
       if (storedKind === "user") {
-        const { data: userProfile, error: userError } = await supabase
+        const { data: userProfile } = await supabase
           .from("user_profiles")
           .select("*")
           .eq("user_id", user.id)
           .single();
 
-        if (!userError && userProfile) {
+        if (userProfile) {
           setProfile({
             kind: "user",
             email: user.email || "",
@@ -309,13 +242,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
       } else if (storedKind === "business") {
-        const { data: businessProfile, error: businessError } = await supabase
+        const { data: businessProfile } = await supabase
           .from("business_profiles")
           .select("*")
           .eq("owner_id", user.id)
           .single();
 
-        if (!businessError && businessProfile) {
+        if (businessProfile) {
           setProfile({
             kind: "business",
             email: user.email || "",
@@ -330,14 +263,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Fallback: check both profiles
-      const { data: userProfile, error: userError } = await supabase
+      // Fallback
+      const { data: userProfile } = await supabase
         .from("user_profiles")
         .select("*")
         .eq("user_id", user.id)
         .single();
 
-      if (!userError && userProfile) {
+      if (userProfile) {
         if (typeof window !== "undefined") {
           localStorage.setItem(PROFILE_KIND_KEY, "user");
         }
@@ -357,13 +290,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const { data: businessProfile, error: businessError } = await supabase
+      const { data: businessProfile } = await supabase
         .from("business_profiles")
         .select("*")
         .eq("owner_id", user.id)
         .single();
 
-      if (!businessError && businessProfile) {
+      if (businessProfile) {
         if (typeof window !== "undefined") {
           localStorage.setItem(PROFILE_KIND_KEY, "business");
         }
@@ -383,7 +316,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
       setIsLoading(false);
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.error("[AuthContext] Error refreshing profile:", error);
       setProfile(null);
       setIsLoading(false);
     }

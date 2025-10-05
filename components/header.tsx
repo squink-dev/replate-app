@@ -25,6 +25,7 @@ export default function Header() {
   };
 
   const getDisplayName = () => {
+    console.log(profile);
     if (!profile) return "";
     if (profile.kind === "user") {
       return `${profile.firstName} ${profile.lastName}`;

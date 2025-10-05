@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import Footer from "@/components/footer";
@@ -11,11 +12,12 @@ interface FoodItem {
   amount: string;
 }
 
-export default function ListingView() {
-  const { id } = useParams(); // dynamic location id from URL
-  const locationName = "Central Kitchen"; // temporary placeholder — replace with API data later
+export default function LocationView() {
+  const { id } = useParams();
 
-  // Mock food items — eventually will come from API
+  // Mock: in real app, you'd fetch location info from API
+  const locationName = `Location #${id}`;
+
   const [foodItems, setFoodItems] = useState<FoodItem[]>([
     { id: 1, name: "Apples", amount: "20 lbs" },
     { id: 2, name: "Rice", amount: "10 bags" },
@@ -69,16 +71,18 @@ export default function ListingView() {
   return (
     <>
       <Header />
-      <div className="bg-gray-50 flex flex-col px-6 py-12">
+      <div className="min-h-screen bg-gray-50 flex flex-col px-6 py-12">
         <div className="max-w-3xl mx-auto w-full bg-white shadow-lg rounded-2xl border border-gray-200 p-8">
-          {/* Header */}
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {locationName} (ID: {id})
-          </h1>
-          <p className="text-gray-500 mb-6">
-            Manage your food listings for this location. Add, edit, or delete
-            available food items.
-          </p>
+          {/* Header Section */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              {locationName}
+            </h1>
+            <p className="text-gray-500">
+              Manage your food items here — add, edit, or delete supplies at
+              this location.
+            </p>
+          </div>
 
           {/* Add/Edit Form */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -103,7 +107,7 @@ export default function ListingView() {
               <button
                 type="button"
                 onClick={handleSave}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
               >
                 Save
               </button>
@@ -119,7 +123,7 @@ export default function ListingView() {
           </div>
 
           {/* Food Items List */}
-          <div className="border-t border-gray-200 pt-4">
+          <div className="border-t border-gray-200 pt-4 mb-8">
             {foodItems.length === 0 ? (
               <p className="text-gray-500 text-center py-4">
                 No food items added yet.
@@ -141,7 +145,7 @@ export default function ListingView() {
                       <button
                         type="button"
                         onClick={() => handleEdit(item)}
-                        className="text-green-600 hover:underline text-sm"
+                        className="text-blue-600 hover:underline text-sm"
                       >
                         Edit
                       </button>
@@ -157,6 +161,16 @@ export default function ListingView() {
                 ))}
               </ul>
             )}
+          </div>
+
+          {/* Back to Dashboard Button (works great for both mobile & desktop) */}
+          <div className="text-center">
+            <Link
+              href="/business/dashboard"
+              className="inline-block bg-gray-200 text-gray-800 px-6 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
+            >
+              ← Back to Dashboard
+            </Link>
           </div>
         </div>
       </div>

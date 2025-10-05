@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
 export default function HomePage() {
-  const { profile, isLoading, signOut } = useAuth();
+  const { profile, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -27,7 +27,6 @@ export default function HomePage() {
         </p>
 
         <div className="flex flex-col md:flex-row gap-4">
-          {/* 👇 Show login buttons only if no profile */}
           {!profile && (
             <>
               <Button
@@ -47,7 +46,6 @@ export default function HomePage() {
             </>
           )}
 
-          {/* 👇 If user is logged in as a business */}
           {profile?.kind === "business" && (
             <Button
               asChild
@@ -57,7 +55,6 @@ export default function HomePage() {
             </Button>
           )}
 
-          {/* 👇 “View Available Food” — always visible */}
           <Button
             asChild
             variant="ghost"

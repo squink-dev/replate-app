@@ -20,13 +20,16 @@ export default function BusinessDashboard() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState({ name: "", address: "" });
 
   const [formData, setFormData] = useState({ name: "", address: "" });
   const [showForm, setShowForm] = useState(false);
 
   const { profile } = useAuth();
 
-  // Fetch locations on mount
+  // Fetch locations
   useEffect(() => {
     const fetchLocations = async () => {
       if (profile?.kind !== "business") {
@@ -39,24 +42,21 @@ export default function BusinessDashboard() {
           `/api/business/locations?business_id=${profile.businessId}`,
         );
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch locations");
-        }
+        if (!response.ok) throw new Error("Failed to fetch locations");
 
         const data = await response.json();
-
         if (data.success && data.locations) {
-          const formattedLocations: Location[] = data.locations.map(
+          const formatted: Location[] = data.locations.map(
             (loc: BusinessLocation) => ({
               id: loc.id,
               name: loc.name,
               address: loc.address,
             }),
           );
-          setLocations(formattedLocations);
+          setLocations(formatted);
         }
-      } catch (error) {
-        console.error("Error fetching locations:", error);
+      } catch (err) {
+        console.error("Error fetching locations:", err);
       } finally {
         setIsLoading(false);
       }
@@ -65,30 +65,22 @@ export default function BusinessDashboard() {
     fetchLocations();
   }, [profile]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
+  // Add location
   const handleAdd = async () => {
     if (!formData.name.trim() || !formData.address.trim()) {
       alert("Please fill out both fields.");
       return;
     }
-
     if (profile?.kind !== "business") {
       alert("You must be logged in as a business to add locations.");
       return;
     }
 
     setIsAdding(true);
-
     try {
       const response = await fetch("/api/business/locations", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
           address: formData.address,
@@ -96,40 +88,59 @@ export default function BusinessDashboard() {
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create location");
-      }
+      if (!response.ok) throw new Error(data.error || "Failed to create");
 
       if (data.success && data.location) {
-        // Add the new location to the list
-        const newLocation: Location = {
+        const newLoc: Location = {
           id: data.location.id,
           name: data.location.name,
           address: data.location.address,
         };
-
-        setLocations((prev) => [newLocation, ...prev]);
+        setLocations((prev) => [newLoc, ...prev]);
         setFormData({ name: "", address: "" });
         setShowForm(false);
         alert("Location added successfully!");
       }
-    } catch (error) {
-      console.error("Error adding location:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to add location. Please try again.",
-      );
+    } catch (err) {
+      console.error(err);
+      alert("Failed to add location. Please try again.");
     } finally {
       setIsAdding(false);
     }
   };
 
+  // Delete location
+  const handleDelete = (id: string) => {
+    if (confirm("Are you sure you want to delete this location?")) {
+      setLocations((prev) => prev.filter((loc) => loc.id !== id));
+      setMenuOpen(null);
+    }
+  };
+
+  // Edit location
+  const handleEdit = (loc: Location) => {
+    setEditingId(loc.id);
+    setEditData({ name: loc.name, address: loc.address });
+    setMenuOpen(null);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editData.name.trim() || !editData.address.trim()) {
+      alert("Please fill out both fields.");
+      return;
+    }
+
+    setLocations((prev) =>
+      prev.map((loc) => (loc.id === editingId ? { ...loc, ...editData } : loc)),
+    );
+
+    setEditingId(null);
+    setEditData({ name: "", address: "" });
+  };
+
   return (
     <>
       <Header />
-
       <div className="min-h-screen bg-gray-50 flex flex-col px-6 py-12">
         <div className="max-w-3xl mx-auto w-full bg-white shadow-lg rounded-2xl border border-gray-200 p-8">
           {/* Header */}
@@ -149,21 +160,23 @@ export default function BusinessDashboard() {
             </div>
             <button
               type="button"
-              onClick={() => setShowForm((prev) => !prev)}
+              onClick={() => setShowForm((p) => !p)}
               className="mt-4 md:mt-0 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
             >
               {showForm ? "Cancel" : "+ Add Location"}
             </button>
           </div>
 
-          {/* Add Location Form */}
+          {/* Add Form */}
           {showForm && (
             <div className="flex flex-col md:flex-row gap-4 mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
               <input
                 type="text"
                 name="name"
                 value={formData.name}
-                onChange={handleChange}
+                onChange={(e) =>
+                  setFormData((p) => ({ ...p, name: e.target.value }))
+                }
                 placeholder="Location name"
                 className="border border-gray-300 rounded-lg px-4 py-2 flex-1"
               />
@@ -171,7 +184,9 @@ export default function BusinessDashboard() {
                 type="text"
                 name="address"
                 value={formData.address}
-                onChange={handleChange}
+                onChange={(e) =>
+                  setFormData((p) => ({ ...p, address: e.target.value }))
+                }
                 placeholder="Address (e.g., 123 Main St)"
                 className="border border-gray-300 rounded-lg px-4 py-2 flex-1"
               />
@@ -179,14 +194,14 @@ export default function BusinessDashboard() {
                 type="button"
                 onClick={handleAdd}
                 disabled={isAdding}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
               >
                 {isAdding ? "Saving..." : "Save"}
               </button>
             </div>
           )}
 
-          {/* Locations List */}
+          {/* Locations */}
           <div className="border-t border-gray-200 pt-4">
             {isLoading ? (
               <p className="text-gray-500 text-center py-4">
@@ -201,20 +216,97 @@ export default function BusinessDashboard() {
                 {locations.map((loc, index) => (
                   <li
                     key={loc.id}
-                    className="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition"
+                    className="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition relative"
                   >
-                    <div>
-                      <h3 className="font-semibold text-gray-800">
-                        {index + 1}. {loc.name}
-                      </h3>
-                      <p className="text-gray-500 text-sm">{loc.address}</p>
-                    </div>
-                    <Link
-                      href={`/business/dashboard/listing/${loc.id}`}
-                      className="text-green-600 hover:underline text-sm font-medium"
-                    >
-                      Manage →
-                    </Link>
+                    {editingId === loc.id ? (
+                      <div className="flex flex-col md:flex-row gap-3 w-full">
+                        <input
+                          type="text"
+                          value={editData.name}
+                          onChange={(e) =>
+                            setEditData((p) => ({
+                              ...p,
+                              name: e.target.value,
+                            }))
+                          }
+                          className="border border-gray-300 rounded-lg px-3 py-2 flex-1"
+                        />
+                        <input
+                          type="text"
+                          value={editData.address}
+                          onChange={(e) =>
+                            setEditData((p) => ({
+                              ...p,
+                              address: e.target.value,
+                            }))
+                          }
+                          className="border border-gray-300 rounded-lg px-3 py-2 flex-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveEdit}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <h3 className="font-semibold text-gray-800">
+                            {index + 1}. {loc.name}
+                          </h3>
+                          <p className="text-gray-500 text-sm">{loc.address}</p>
+                        </div>
+
+                        <div className="flex items-center gap-2 relative">
+                          <Link
+                            href={`/business/dashboard/listing/${loc.id}`}
+                            className="text-green-600 hover:underline text-sm font-medium"
+                          >
+                            Manage Inventory
+                          </Link>
+
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setMenuOpen(menuOpen === loc.id ? null : loc.id)
+                              }
+                              className="text-gray-500 hover:text-gray-800 active:text-black text-2xl px-2 transition-colors"
+                            >
+                              ⋯
+                            </button>
+
+                            {menuOpen === loc.id && (
+                              <>
+                                <button
+                                  type="button"
+                                  className="fixed inset-0 bg-transparent cursor-default"
+                                  onClick={() => setMenuOpen(null)}
+                                />
+                                <div className="absolute right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-md w-32 z-10">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEdit(loc)}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDelete(loc.id)}
+                                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -222,7 +314,6 @@ export default function BusinessDashboard() {
           </div>
         </div>
       </div>
-
       <Footer />
     </>
   );

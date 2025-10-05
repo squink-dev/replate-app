@@ -1,9 +1,25 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
+
+// Map food descriptions to icon filenames
+const foodIconMap: Record<string, string> = {
+  Apple: "Apple.png",
+  Banana: "banana.png",
+  Carrot: "Carrot.png",
+  Eggs: "egg.png",
+  Donut: "Donut.jpg",
+  "Grilled Bagel": "GrilledBagel.png",
+  Hashbrown: "Hashbrown.png",
+  Milk: "Milk.png",
+  "Tuna Sandwich": "TunaSandwich.png",
+  Wrap: "Wrap.png",
+  Yogurt: "Yogurt.png",
+};
 
 interface FoodItem {
   id: number;
@@ -235,9 +251,20 @@ export default function UserReservePage({
                     >
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 mb-1">
-                            {item.description}
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            {foodIconMap[item.description] && (
+                              <Image
+                                src={`/food_Icons/${foodIconMap[item.description]}`}
+                                alt={item.description}
+                                width={32}
+                                height={32}
+                                className="object-contain"
+                              />
+                            )}
+                            <h3 className="font-medium text-gray-900 mb-1">
+                              {item.description}
+                            </h3>
+                          </div>
                           <div className="flex gap-4 text-sm text-gray-600">
                             <span>
                               Available: {item.available_quantity}{" "}

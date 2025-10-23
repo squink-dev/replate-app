@@ -1,6 +1,7 @@
 # Replate
-https://thereplateapp.vercel.app/ 
-home page is a lil slow because of the decorations, but wtv
+This project was built for MRUHacks 2025, read more here: https://devpost.com/software/replate-2qypzk
+
+Access a live version of this application here: https://thereplateapp.vercel.app/ 
 
 ## Connecting surplus food to people who need it (simply and sustainably)
 
